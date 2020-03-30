@@ -1,0 +1,90 @@
+DATAMODEL modipaa
+    SETTINGS
+        LANGUAGES = Eng "English",
+                    Swa "Swahili"
+        LIBRARIES
+            libYesNo '..\lib\libYesNo.lib',
+            libVillageID '..\lib\libVillageID.lib',
+            libClusterID '..\lib\libClusterID.lib',
+            libStaffID '..\lib\libStaffID.lib',
+            lib24HRClock '..\lib\lib24HRClock.lib',
+            libNCoordinate '..\lib\libNCoordinate.lib',
+            libECoordinate '..\lib\libECoordinate.lib',
+            libIPAAID '..\lib\libIPAAID.lib'
+        PRIMARY
+            ba.a9
+        USES
+            getStaffName '..\ext\stffnme',
+            getVillageName '..\ext\LocDetailC0'
+
+        INCLUDE "inc\blka.inc"
+        INCLUDE "inc\blkb.inc"
+        INCLUDE "inc\blkc.inc"
+        INCLUDE "inc\blkd.inc"
+        INCLUDE "inc\blkt.inc"
+
+    FIELDS
+        stimestamp, etimestamp : TIMETYPE
+        sdatestamp, edatestamp : DATETYPE
+        sid : STRING [5]
+        ba : blka
+        bb : blkb
+        bc : blkc
+        bd : blkd
+        bt : blkt
+        a10 "Survey End Time:
+            @/@/@R(24 hour clock)@R"
+            : T24HRClock
+        endpoint "@E@RTHIS IS THE END OF THE QUESTIONNAIRE@R"
+            / "End"
+            : (COMPLETE (1) "@RENTER <1> TO COMPLETE THIS QUESTIONNAIRE@R")
+        abort : STRING [244]
+    AUXFIELDS
+        aux_fa "@R@BPLEASE ADMINISTER THIS SURVEY TO THE TOP TWO IPA ASSISTANT (IPAA) CANDIDATES FOR EACH VILLAGE. ADMINISTER THIS SURVEY AT THE IPAA CANDIDATE'S HOUSE.@B@R"
+               : (ENTER)
+        aux_adm "@G@BADMINISTER IPAA SURVEY CONSENT:@G
+                @/@/@RREAD CONSENT VERBATIM. IF THE IPAA CANDIDATE CONSENTS, OBTAIN A SIGNATURE OR LEFT THUMB PRINT ON TWO COPIES. LEAVE ONE COPY WITH THE IPAA CANDIDATE AND BRING ONE COPY BACK TO THE OFFICE.@B@R"
+                : (ENTER)
+
+    LAYOUT
+        BEFORE aux_fa NEWPAGE
+        BEFORE aux_adm NEWPAGE
+
+    RULES
+        {START TIME STAMP AND DATE STAMP}
+        stimestamp.KEEP
+        IF (stimestamp = EMPTY) AND (ba.ta1.ba1.a1ID = RESPONSE) THEN
+            stimestamp:= SYSTIME
+        ENDIF
+        sdatestamp.KEEP
+        IF (sdatestamp = EMPTY) AND (ba.ta1.ba1.a1ID = RESPONSE) THEN
+            sdatestamp:= SYSDATE
+        ENDIF
+        sdatestamp.KEEP
+        ba
+        bb
+        IF (bb.b0 = YES) THEN
+            bc
+            bd
+            bt
+        ENDIF
+        a10
+        CHECK
+            (LEN (a10) > 3) "@R@BERROR!@B
+                           @/@/Please check that your @B24 hour time@B entry has the @Ucorrect number of digits@U!@R"
+        CHECK
+            (VAL (SUBSTRING (a10, 1, 2)) < 24) "@R@BERROR!@B
+                                              @/@/Please check that your @Uhour@U entry is within @B24@B!@R"
+        CHECK
+            (VAL (SUBSTRING (a10, 3, 4)) < 60) "@R@BERROR!@B
+                                              @/@/Please check that your @Uminute@U entry is within @B60@B!@R"
+        endpoint
+        IF (endpoint = RESPONSE) AND (etimestamp = EMPTY) THEN
+            etimestamp:= SYSTIME
+        ENDIF
+        etimestamp.KEEP
+        IF (endpoint = RESPONSE) AND (etimestamp = EMPTY) THEN
+            edatestamp:= SYSDATE
+        ENDIF
+        edatestamp.KEEP
+ENDMODEL

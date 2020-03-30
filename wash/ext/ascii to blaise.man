@@ -1,0 +1,17 @@
+SETTINGS
+    DESCRIPTION = 'ASCII TO BLAISE'
+
+USES
+    inputmeta 'LocDetail'
+
+INPUTFILE
+    inputdata : inputmeta ('vl.csv', ASCII)
+    SETTINGS
+        SEPARATOR = ','
+        DELIMITER = '"'
+
+OUTPUTFILE
+    outputdata : inputmeta ('LocDetail', BLAISE)
+
+MANIPULATE
+    outputdata.WRITE

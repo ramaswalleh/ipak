@@ -1,0 +1,17 @@
+PROCESS COMPRESS_ENCRYPT
+
+SETTINGS
+    DESCRIPTION = 'COMPRESS AND ENCRYPT'
+
+AUXFIELDS
+    Reslt : INTEGER
+
+PROCEDURE ZIPUP
+    Reslt:= RUN ('C:\Blaise\WZZIP C:\ipak\wash\baseline\input\Input_Data C:\ipak\wash\baseline\input\InputData.bdb -sgoodstuff ', WAIT)
+    Reslt:= RUN ('C:\Blaise\WZZIP C:\ipak\wash\baseline\input\Input_Data C:\ipak\wash\baseline\input\InputData.bpk -sgoodstuff ', WAIT)
+    Reslt:= RUN ('C:\Blaise\WZZIP C:\ipak\wash\baseline\input\Input_Data C:\ipak\wash\baseline\input\InputData.bfi -sgoodstuff ', WAIT)
+    Reslt:= RUN ('C:\Blaise\WZZIP C:\ipak\wash\baseline\input\Input_Data C:\ipak\wash\baseline\input\InputData.bjk -sgoodstuff ', WAIT)
+ENDPROCEDURE
+
+MANIPULATE
+ZIPUP

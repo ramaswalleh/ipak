@@ -1,0 +1,17 @@
+SETTINGS
+    DESCRIPTION = 'BLAISE TO BLAISE'
+
+USES
+    inputmeta '..\ipaa'
+
+INPUTFILE
+    inputdata : inputmeta ('..\WASH_IPAADATA', BLAISE)
+
+OUTPUTFILE
+    ouputdata : inputmeta ('..\data\BLAISE_IPAA_2013_7_12', BLAISE)
+    SETTINGS
+        MAKENEWFILE = NO
+        RENEW = YES
+
+MANIPULATE
+    ouputdata.WRITE

@@ -1,0 +1,5 @@
+LIBRARY libNCoordinate
+TYPE
+    { This string should have Input mask: N °|__|__|.|__|__|__|__|__| }
+	TNCoordinate = STRING [7]
+ENDLIBRARY

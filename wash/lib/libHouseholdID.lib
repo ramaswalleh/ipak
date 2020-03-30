@@ -1,0 +1,4 @@
+LIBRARY libHouseholdID
+TYPE
+    THouseholdID = STRING [7]
+ENDLIBRARY

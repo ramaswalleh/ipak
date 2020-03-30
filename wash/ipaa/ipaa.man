@@ -1,0 +1,367 @@
+PROCESS ipaa
+
+SETTINGS
+    DESCRIPTION = 'ver. 2013.06.11.01'
+    TRAILINGSPACES = NO
+    DAYFILE = 'Log.txt'
+
+USES
+    dmipaasurvey 'ipaa'
+
+DATAMODEL dmLine
+FIELDS
+    strLine : STRING
+ENDMODEL
+
+INPUTFILE intxtLine : dmLine ('', ASCII)
+    SETTINGS
+        OPEN = NO
+
+UPDATEFILE updmipaa : dmipaasurvey ('WASH_IPAADATA', BLAISE)
+    SETTINGS
+        OPEN = NO
+
+OUTPUTFILE outtxtLine : dmLine ('', ASCII)
+    SETTINGS
+        OPEN = NO
+
+AUXFIELDS
+    txtIPAA "Please enter the first five digits of the IPAA Candidate ID here." : STRING [5], EMPTY
+    txtIndx "Please enter the last two digits of the IPAA Candidate ID here." : STRING [2], EMPTY
+    txtSID "This is the Survey ID. It is a combination of the unique Machine Number and an incrementing Survey Count." : STRING [5]
+    txtMachNo "Please enter your computer's machine number here." : INTEGER [2], EMPTY
+    btnPrimKey : (OK "Use OK to create a new record with this Primary Key.@!<< &OK",
+                  BACK "You can return to the previous dialogbox.@!&Back >>",
+                  CANCEL "Wanna exit? Well just hit Cancel!@!&Cancel")
+    btnMachNo : (OK "Just hit OK to proceed!@!<< &OK")
+    auxFlag : (CONTINUE, STOP)
+    auxResult : INTEGER
+    AbortButton : (SAVE "Save")
+    auxDate : DATETYPE
+    auxAbort : OPEN
+
+DIALOGBOX dlgPrimKey "Primary Key"
+    SIZE = (280, 200)
+    ESCAPE = NO
+    FONTSIZE = 12
+    TEXT = ('-', 192, 50)
+    CONTROL txtIPAA
+        LABEL = ('IPAA Cand. ID:', 10, 50)
+        POSITION = (130, 48)
+    CONTROL txtIndx
+        LABEL = NO
+        POSITION = (200, 48)
+    CONTROL txtSID
+        LABEL = ('Survey ID:', 10, 100)
+        POSITION = (130, 100)
+        EDIT = NO
+    BUTTON btnPrimKey
+        VALUE = OK
+        SIZE = (100, 40)
+        POSITION = (10, 150)
+    BUTTON btnPrimKey
+        VALUE = BACK
+        SIZE = (100, 40)
+        POSITION = (170, 150)
+        VISIBLE = (btnMachNo = OK)
+    BUTTON btnPrimKey
+        VALUE = CANCEL
+        SIZE = (100, 40)
+        POSITION = (170, 150)
+        VISIBLE = (NOT (btnMachNo = OK)) {YOU HAVE TO ENCLOSE THE NOT HERE IN BRACKETS TO RETURN A TRUE - ELSE THE CONDITION CANNOT BE UNDERSTOOD BY THE COMPILER.}
+
+DIALOGBOX dlgMachNo "Machine Number"
+    SIZE = (230, 170)
+    ESCAPE = YES
+    FONTSIZE = 12
+    CONTROL txtMachNo
+        LABEL = ('Machine Number:', 10, 50)
+        POSITION = (150, 48)
+    BUTTON btnMachNo
+        VALUE = OK
+        SIZE = (100, 40)
+        POSITION = (65, 120)
+
+DIALOGBOX AbortSurvey "Abort survey"
+    SIZE = (200, 155)
+    ESCAPE = NO
+    TEXT = ('@>Enter reason for aborting survey:', 1, 15)
+    CONTROL auxAbort
+        SIZE = (155, 55)
+        FONTSIZE = 9
+        POSITION = (27, 40)
+        LABEL = NO
+
+    BUTTON AbortButton
+        VALUE = SAVE
+        CAPTION = 'Save'
+
+MANIPULATE
+    auxDate:= SYSDATE
+    IF (FILEEXISTS ('C:\Blaise\ID.txt')) THEN
+        intxtLine.OPEN ('C:\Blaise\ID.txt')
+        intxtLine.READNEXT
+        txtMachNo:= VAL (SUBSTRING (intxtLine.strLine, 5, 2))
+        intxtLine.CLOSE
+        IF (FILEEXISTS ('C:\ipak\wash\ipaa\SurveyCounter.txt')) THEN
+            intxtLine.OPEN ('C:\ipak\wash\ipaa\SurveyCounter.txt')
+            intxtLine.READNEXT
+            intxtLine.CLOSE
+            IF (txtMachNo <= 9) THEN
+                txtSID:= '0' + STR (txtMachNo) + intxtLine.strLine
+            ELSE
+                txtSID:= STR (txtMachNo) + intxtLine.strLine
+            ENDIF
+            REPEAT
+                dlgPrimKey
+                IF (btnPrimKey = OK) THEN
+                    IF (txtIPAA = '') THEN
+                        DISPLAY ('>:-('
+                                + '@/Please enter the Cluster ID of the IPAA Candidate ID.'
+                                + '@/This is the first five digits that goes to the first text field.', WAIT)
+                        auxFlag:= STOP
+                    ELSEIF (txtIndx = '') THEN
+                        DISPLAY ('>:-('
+                                + '@/Please enter the Rank Number of the IPAA Candidate ID.'
+                                + '@/This is the last two digits that goes to the last text field.', WAIT)
+                        auxFlag:= STOP
+                    ELSEIF (LEN (txtIPAA) < 5) THEN
+                        DISPLAY ('>:-('
+                                + '@/The Cluster ID must have at least five digits.'
+                                + '@/Please check your entry and try again.', WAIT)
+                        auxFlag:= STOP
+                    ELSEIF (LEN (txtIndx) < 2) THEN
+                        DISPLAY ('>:-('
+                                + '@/The Rank Number must have at least two digits.'
+                                + '@/Please check your entry and try again.', WAIT)
+                        auxFlag:= STOP
+                    ELSE
+                        updmipaa.OPEN ('WASH_IPAADATA')
+                        updmipaa.INITRECORD
+                        updmipaa.ba.a9:= txtIPAA + txtIndx
+                        updmipaa.sid:= txtSID
+                        updmipaa.WRITE
+                        outtxtLine.OPEN ('C:\ipak\wash\ipaa\SurveyCounter.txt')
+                        IF (VAL (intxtLine.strLine) + 1) <= 9 THEN
+                            outtxtLine.strLine:= '00' + STR (VAL (intxtLine.strLine) + 1)
+                        ELSEIF (((VAL (intxtLine.strLine) + 1) > 9) AND ((VAL (intxtLine.strLine) + 1) <= 99)) THEN
+                            outtxtLine.strLine:= '0' + STR (VAL (intxtLine.strLine) + 1)
+                        ELSE
+                            outtxtLine.strLine:= STR (VAL (intxtLine.strLine) + 1)
+                        ENDIF
+                        outtxtLine.WRITE
+                        outtxtLine.CLOSE
+                        auxFlag:= CONTINUE
+                    ENDIF
+                ELSEIF (btnPrimKey = CANCEL) THEN
+                    auxFlag:= STOP
+                    EXITREPEAT
+                ENDIF
+            UNTIL (auxFlag = CONTINUE)
+        ELSE
+            outtxtLine.OPEN ('C:\ipak\wash\ipaa\SurveyCounter.txt') {CREATE THE FILE HERE.}
+            outtxtLine.strLine:= '001'
+            outtxtLine.WRITE
+            outtxtLine.CLOSE
+            txtSID:= STR (txtMachNo) + '001'
+            REPEAT
+                dlgPrimKey
+                IF (btnPrimKey = OK) THEN
+                    IF (txtIPAA = '') THEN
+                        DISPLAY ('>:-('
+                                + '@/Please enter the Cluster ID of the IPAA Candidate ID.'
+                                + '@/This is the first five digits that goes to the first text field.', WAIT)
+                        auxFlag:= STOP
+                    ELSEIF (txtIndx = '') THEN
+                        DISPLAY ('>:-('
+                                + '@/Please enter the Rank Number of the IPAA Candidate ID.'
+                                + '@/This is the last two digits that goes to the last text field.', WAIT)
+                        auxFlag:= STOP
+                    ELSEIF (LEN (txtIPAA) < 5) THEN
+                        DISPLAY ('>:-('
+                                + '@/The Cluster ID must have at least five digits.'
+                                + '@/Please check your entry and try again.', WAIT)
+                        auxFlag:= STOP
+                    ELSEIF (LEN (txtIndx) < 2) THEN
+                        DISPLAY ('>:-('
+                                + '@/The Rank Number must have at least two digits.'
+                                + '@/Please check your entry and try again.', WAIT)
+                        auxFlag:= STOP
+                    ELSE
+                        updmipaa.OPEN ('WASH_IPAADATA')
+                        updmipaa.INITRECORD
+                        updmipaa.ba.a9:= txtIPAA + txtIndx
+                        updmipaa.sid:= txtSID
+                        updmipaa.WRITE
+                        outtxtLine.OPEN ('C:\ipak\wash\ipaa\SurveyCounter.txt')
+                        IF (VAL (intxtLine.strLine) + 1) <= 9 THEN
+                            outtxtLine.strLine:= '00' + STR (VAL (intxtLine.strLine) + 1)
+                        ELSEIF (((VAL (intxtLine.strLine) + 1) > 9) AND ((VAL (intxtLine.strLine) + 1) <= 99)) THEN
+                            outtxtLine.strLine:= '0' + STR (VAL (intxtLine.strLine) + 1)
+                        ELSE
+                            outtxtLine.strLine:= STR (VAL (intxtLine.strLine) + 1)
+                        ENDIF
+                        outtxtLine.WRITE
+                        outtxtLine.CLOSE
+                        auxFlag:= CONTINUE
+                    ENDIF
+                ELSEIF (btnPrimKey = CANCEL) THEN
+                    auxFlag:= STOP
+                    EXITREPEAT
+                ENDIF
+            UNTIL (auxFlag = CONTINUE)
+        ENDIF
+    ELSE
+        DISPLAY (':-o'
+                + '@/Machine Number file not found!'
+                + '@/It may have been omitted during inital install or update of the console, or simply deleted/moved.'
+                + '@/An ID for your computer is needed to create a unique Survey ID for new cases.'
+                + '@/@/You will have a chance to enter your machine number to fix this.', WAIT)
+        REPEAT
+            dlgMachNo
+            IF (txtMachNo = 0) THEN
+                DISPLAY ('>:-('
+                        + '@/Please enter your computer''s machine number first before hitting OK!', WAIT)
+            ELSE
+                outtxtLine.OPEN ('C:\Blaise\ID.txt')
+                IF (txtMachNo <= 9) THEN
+                    outtxtLine.strLine:= 'WASH' + '0' + STR (txtMachNo)
+                ELSE
+                    outtxtLine.strLine:= 'WASH' + STR (txtMachNo)
+                ENDIF
+                outtxtLine.WRITE
+                outtxtLine.CLOSE
+                IF (FILEEXISTS ('C:\ipak\wash\ipaa\SurveyCounter.txt')) THEN
+                    intxtLine.OPEN ('C:\ipak\wash\ipaa\SurveyCounter.txt')
+                    intxtLine.READNEXT
+                    intxtLine.CLOSE
+                    IF (txtMachNo <= 9) THEN
+                        txtSID:= '0' + STR (txtMachNo) + intxtLine.strLine
+                    ELSE
+                        txtSID:= STR (txtMachNo) + intxtLine.strLine
+                    ENDIF
+                    REPEAT
+                        dlgPrimKey
+                        IF (btnPrimKey = OK) THEN
+                            IF (txtIPAA = '') THEN
+                                DISPLAY ('>:-('
+                                        + '@/Please enter the Cluster ID of the IPAA Candidate ID.'
+                                        + '@/This is the first five digits that goes to the first text field.', WAIT)
+                                auxFlag:= STOP
+                            ELSEIF (txtIndx = '') THEN
+                                DISPLAY ('>:-('
+                                        + '@/Please enter the Rank Number of the IPAA Candidate ID.'
+                                        + '@/This is the last two digits that goes to the last text field.', WAIT)
+                                auxFlag:= STOP
+                            ELSEIF (LEN (txtIPAA) < 5) THEN
+                                DISPLAY ('>:-('
+                                        + '@/The Cluster ID must have at least five digits.'
+                                        + '@/Please check your entry and try again.', WAIT)
+                                auxFlag:= STOP
+                            ELSEIF (LEN (txtIndx) < 2) THEN
+                                DISPLAY ('>:-('
+                                        + '@/The Rank Number must have at least two digits.'
+                                        + '@/Please check your entry and try again.', WAIT)
+                                auxFlag:= STOP
+                            ELSE
+                                updmipaa.OPEN ('WASH_IPAADATA')
+                                updmipaa.INITRECORD
+                                updmipaa.ba.a9:= txtIPAA + txtIndx
+                                updmipaa.sid:= txtSID
+                                updmipaa.WRITE
+                                outtxtLine.OPEN ('C:\ipak\wash\ipaa\SurveyCounter.txt')
+                                IF (VAL (intxtLine.strLine) + 1) <= 9 THEN
+                                    outtxtLine.strLine:= '00' + STR (VAL (intxtLine.strLine) + 1)
+                                ELSEIF (((VAL (intxtLine.strLine) + 1) > 9) AND ((VAL (intxtLine.strLine) + 1) <= 99)) THEN
+                                    outtxtLine.strLine:= '0' + STR (VAL (intxtLine.strLine) + 1)
+                                ELSE
+                                    outtxtLine.strLine:= STR (VAL (intxtLine.strLine) + 1)
+                                ENDIF
+                                outtxtLine.WRITE
+                                outtxtLine.CLOSE
+                                auxFlag:= CONTINUE
+                            ENDIF
+                        ELSEIF (btnPrimKey = BACK) THEN
+                            auxFlag:= STOP
+                            EXITREPEAT
+                        ENDIF
+                    UNTIL (auxFlag = CONTINUE)
+                ELSE
+                    outtxtLine.OPEN ('C:\ipak\wash\ipaa\SurveyCounter.txt') {CREATE THE FILE HERE.}
+                    outtxtLine.strLine:= '001'
+                    outtxtLine.WRITE
+                    outtxtLine.CLOSE
+                    txtSID:= STR (txtMachNo) + '001'
+                    REPEAT
+                        dlgPrimKey
+                        IF (btnPrimKey = OK) THEN
+                            IF (txtIPAA = '') THEN
+                                DISPLAY ('>:-('
+                                        + '@/Please enter the Cluster ID of the IPAA Candidate ID.'
+                                        + '@/This is the first five digits that goes to the first text field.', WAIT)
+                                auxFlag:= STOP
+                            ELSEIF (txtIndx = '') THEN
+                                DISPLAY ('>:-('
+                                        + '@/Please enter the Rank Number of the IPAA Candidate ID.'
+                                        + '@/This is the last two digits that goes to the last text field.', WAIT)
+                                auxFlag:= STOP
+                            ELSEIF (LEN (txtIPAA) < 5) THEN
+                                DISPLAY ('>:-('
+                                        + '@/The Cluster ID must have at least five digits.'
+                                        + '@/Please check your entry and try again.', WAIT)
+                                auxFlag:= STOP
+                            ELSEIF (LEN (txtIndx) < 2) THEN
+                                DISPLAY ('>:-('
+                                        + '@/The Rank Number must have at least two digits.'
+                                        + '@/Please check your entry and try again.', WAIT)
+                                auxFlag:= STOP
+                            ELSE
+                                updmipaa.OPEN ('WASH_IPAADATA')
+                                updmipaa.INITRECORD
+                                updmipaa.ba.a9:= txtIPAA + txtIndx
+                                updmipaa.sid:= txtSID
+                                updmipaa.WRITE
+                                outtxtLine.OPEN ('C:\ipak\wash\ipaa\SurveyCounter.txt')
+                                IF (VAL (intxtLine.strLine) + 1) <= 9 THEN
+                                    outtxtLine.strLine:= '00' + STR (VAL (intxtLine.strLine) + 1)
+                                ELSEIF (((VAL (intxtLine.strLine) + 1) > 9) AND ((VAL (intxtLine.strLine) + 1) <= 99)) THEN
+                                    outtxtLine.strLine:= '0' + STR (VAL (intxtLine.strLine) + 1)
+                                ELSE
+                                    outtxtLine.strLine:= STR (VAL (intxtLine.strLine) + 1)
+                                ENDIF
+                                outtxtLine.WRITE
+                                outtxtLine.CLOSE
+                                auxFlag:= CONTINUE
+                            ENDIF
+                        ELSEIF (btnPrimKey = BACK) THEN
+                            auxFlag:= STOP
+                            EXITREPEAT
+                        ENDIF
+                    UNTIL (auxFlag = CONTINUE)
+                ENDIF
+            ENDIF
+        UNTIL (auxFlag = CONTINUE)
+    ENDIF
+    IF (auxFlag = CONTINUE) THEN
+        auxResult:= updmipaa.EDIT ('/G /K' + txtIPAA + txtIndx + ' /X /MC:\ipak\wash\baseline\IPA_Menu.bmf')
+        IF NOT (endpoint = COMPLETE) THEN
+            REPEAT
+                AbortSurvey
+                IF ((AbortButton = SAVE) AND (auxAbort = '')) THEN
+                    auxFlag:= STOP
+                    DISPLAY ('You must enter a reason for prematurely ending the survey before you can save and exit.', WAIT)
+                ELSE
+                    updmipaa.abort:= auxAbort
+                    auxFlag:= CONTINUE
+                    DISPLAY ('Your reason was saved to to the current survey.', WAIT)
+                ENDIF
+            UNTIL (auxFlag = CONTINUE)
+        ENDIF
+        updmipaa.WRITE
+        auxResult:= RUN ('MKDIR ' + 'C:\ipak\wash\baseline\DAILYCOMPLETEDSURVEYS\WASH_IPAA' + SUBSTRING (updmipaa.sid, 1, 2) + STR (auxDate.YEAR) + STR (auxDate.MONTH) + STR (auxDate.DAY), WAIT)
+        auxResult:= RUN ('C:\Blaise\wzzip ' + 'C:\ipak\wash\baseline\DAILYCOMPLETEDSURVEYS\WASH_IPAA' + SUBSTRING (updmipaa.sid, 1, 2) + STR (auxDate.YEAR) + STR (auxDate.MONTH) + STR (auxDate.DAY) + '\WASH_IPAADATA' + SUBSTRING (updmipaa.sid, 1, 2) + STR (auxDate.YEAR) + STR (auxDate.MONTH) + STR (auxDate.DAY) + ' C:\Blaise\wzzip C:\ipak\wash\ipaa\WASH_IPAADATA.* -sgoodstuff', WAIT)
+        auxResult:= RUN ('C:\Blaise\wzzip ' + 'C:\ipak\wash\baseline\DAILYCOMPLETEDSURVEYS\WASH_IPAA' + SUBSTRING (updmipaa.sid, 1, 2) + STR (auxDate.YEAR) + STR (auxDate.MONTH) + STR (auxDate.DAY) + '\WASH_IPAADATA' + SUBSTRING (updmipaa.sid, 1, 2) + STR (auxDate.YEAR) + STR (auxDate.MONTH) + STR (auxDate.DAY) + ' C:\Blaise\wzzip C:\ipak\wash\ipaa\ipaa.bdm -sgoodstuff', WAIT)
+        auxResult:= RUN ('C:\Blaise\wzzip ' + 'C:\ipak\wash\baseline\DAILYCOMPLETEDSURVEYS\WASH_IPAA' + SUBSTRING (updmipaa.sid, 1, 2) + STR (auxDate.YEAR) + STR (auxDate.MONTH) + STR (auxDate.DAY) + '\WASH_IPAADATA' + SUBSTRING (updmipaa.sid, 1, 2) + STR (auxDate.YEAR) + STR (auxDate.MONTH) + STR (auxDate.DAY) + ' C:\Blaise\wzzip C:\ipak\wash\ipaa\ipaa.bmi -sgoodstuff', WAIT)
+        auxResult:= RUN ('C:\Blaise\wzzip ' + 'C:\ipak\wash\baseline\DAILYCOMPLETEDSURVEYS\WASH_IPAA' + SUBSTRING (updmipaa.sid, 1, 2) + STR (auxDate.YEAR) + STR (auxDate.MONTH) + STR (auxDate.DAY) + '\WASH_IPAADATA' + SUBSTRING (updmipaa.sid, 1, 2) + STR (auxDate.YEAR) + STR (auxDate.MONTH) + STR (auxDate.DAY) + ' C:\Blaise\wzzip C:\ipak\wash\ipaa\ipaa.bxi -sgoodstuff', WAIT)
+        updmipaa.RELEASE
+    ENDIF

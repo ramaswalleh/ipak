@@ -1,0 +1,17 @@
+SETTINGS
+    DESCRIPTION = 'BLASIE TO ASCII'
+
+USES
+    inputmeta '..\baseline'
+
+INPUTFILE
+    inputdata : inputmeta ('..\data\BG09122012', BLAISE)
+
+OUTPUTFILE
+    outputdata : inputmeta ('..\data\BG09122012.asc', ASCII)
+    SETTINGS
+        SEPARATOR = ','
+        DELIMITER = '"'
+
+MANIPULATE
+    outputdata.WRITE

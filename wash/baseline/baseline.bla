@@ -1,0 +1,413 @@
+{05/08/2013}
+DATAMODEL baseline "IPAK WASH Baseline - Survey ID: ^sid"
+SETTINGS
+    LANGUAGES = Eng "English",
+                Swa "Swahili"
+    PRIMARY
+        hhid, sid
+    LIBRARIES
+        libYesNo '..\lib\libYesNo.lib',
+        libIndividualID '..\lib\libIndividualID.lib',
+        libLabelID '..\lib\libLabelID.lib',
+        lib24HRClock '..\lib\lib24HRClock.lib',
+        libHouseholdID '..\lib\libHouseholdID.lib',
+        libStaffID '..\lib\libStaffID.lib',
+        libPhone '..\lib\libPhone.lib',
+        libNCoordinate '..\lib\libNCoordinate.lib',
+        libECoordinate '..\lib\libECoordinate.lib',
+        libGPSIDWB '..\lib\libGPSIDWB.lib',
+        libGPSIDK '..\lib\libGPSIDK.lib',
+        libVillageID '..\lib\libVillageID.lib',
+        libStopWatch '..\lib\libStopWatch.lib'
+    USES
+        GetSRNames '..\ext\SecResp',
+        GetLocationDetails '..\ext\LocDetail',
+        GetLocationDetailsC0 '..\ext\LocDetailC0',
+        GetStaffNames '..\ext\stffnme'
+    EXTERNALS
+        GetStffNmes : GetStaffNames ('..\ext\stffnme')
+
+    {INCLUDE}
+    INCLUDE "sc.inc"
+    INCLUDE "c.inc"
+    INCLUDE "v.inc"
+    INCLUDE "c0.inc"
+    INCLUDE "a.inc"
+    INCLUDE "b.inc"
+    INCLUDE "m.inc"
+    INCLUDE "c1.inc"
+    INCLUDE "c2.inc"
+    INCLUDE "c3.inc"
+    INCLUDE "c7.inc"
+    INCLUDE "c8.inc"
+    INCLUDE "c9.inc"
+    INCLUDE "c10.inc"
+    INCLUDE "c1102.inc"
+    INCLUDE "c18.inc"
+    INCLUDE "c19.inc"
+    INCLUDE "hw.inc"
+    INCLUDE "pli.inc"
+    INCLUDE "c8_cont.inc"
+    INCLUDE "fr.inc"
+    INCLUDE "e.inc"
+    INCLUDE "ts.inc"
+    INCLUDE "c1_3b.inc"
+    INCLUDE "dob.inc"
+    INCLUDE "g.inc"
+    INCLUDE "rcst.inc"
+    INCLUDE "ws.inc"
+
+FIELDS
+    stimestamp, cstimestamp, cetimestamp, etimestamp : TIMETYPE
+    sdatestamp, edatestamp : DATETYPE
+    hhid "Please enter the household ID:" : THouseholdID
+    hhid2 "Confirm the household ID:" : THouseholdID
+    sid : STRING [5]
+    notif "WAS THIS COMPOUND NOTIFIED FOR THIS VISIT IN ADVANCE?" : TYesNo
+    ipaid "Please enter your IPA Staff ID:" : TStaffID
+    ipanames "IPA Staff names:" : STRING [30]
+    sc : modsc
+    consent "IF THE RESPONDENT @UAGREES TO PARTICIPATE@U, SELECT THE @G@BRESPONDENT CONSENTS@B@G RADIO BUTTON.
+            @/@/IF THE RESPONDENT @UDOES NOT AGREE TO PARTICIPATE@U, SELECT THE @R@BRESPONDENT DOES NOT CONSENT@B@R RADIO BUTTON."
+            : (CONSENTS "@G@BRESPONDENT CONSENTS@B@G",
+               NO_CONSENT "@R@BRESPONDENT DOES NOT CONSENT@B@R")
+    signature "SIGNATURE OBTAINED?" : TYesNo
+    thumbprint "THUMB PRINT OBTAINED?" : TYesNo
+    ipa_id "Please enter your IPA staff ID number here to auto-populate your names:" : TStaffID
+    ipa_names "IPA Staff names:" : STRING [30]
+    C08 "Any other IPA officer present?" : TYesNo
+    C09 "Other IPA officer ID:" : TStaffID
+    C09a "Other IPA officer name:" : STRING [30]
+    C010 "Was yet another IPA officer present?" : TYesNo
+    C011 "Other IPA officer ID:" : TStaffID
+    C011a "Other IPA officer name:" : STRING [30]
+    C101 "Interview date:" : DATETYPE
+    decline "Please enter respondent's reason(s) for not consenting with the interview." : STRING [244]
+    sche "@BOBSERVATION:@B
+         @/@/Was this interview scheduled in advance?" : TYesNo
+    v : modv
+    c : modc
+    c0 : modc0
+    a : moda
+    b : modb
+    m : modm
+    c1 : modc1
+    c2 : modc2
+    c3 : modc3
+    c7 : modc7
+    c8 : modc8
+    c9 : modc9
+    c10 : modc10
+    c1102 : modc1102
+    c18 : modc18
+    c19 : modc19
+    hw : modhw
+    pli : modpli
+    c8_cont : modc8_cont
+    fr : modfr
+    e : mode
+    ts : modts
+    sr_read "Thank you so much for your time.
+            @/@/Before we conclude the interview, I would like to speak to the primary caregiver of any other child 0 - 36 months in the compound (who is not already our respondent).
+            @/@/This is usually the mother.
+            @/@/Are there other mamas here who have a child 0 - 36 months?"
+            "Shukrani sana kwa wakati wako.
+            @/@/Kabla tumalize mahojiano, ningependa kuongea na mlezi wa mtoto yeyote chini ya miezi 0 - 36 katika boma hili (ambaye siye mama anayeshiriki katika mradi wetu).
+            @/@/Kawaida huyu ni mama.
+            @/@/Kunao akina mama wengine hapa ambao wana mtoto mwenye umri kati ya miezi 0 - 36."
+            : TYesNo
+    sr_intro "Hello, nice to see you today.
+             @/@/I am a field officer for Innovations for Poverty Action in Bungoma / Kakamega.
+             @/We are doing research on the health of children in your village.
+             @/I have asked to speak to you briefly because @B^c.TRI004.BRI004.RI004_fname@B has told me that you have a child less than 36 months of age.
+             @/Is this true? Do you mind if I ask you a few questions about your youngest [child / children]?"
+             "Hujambo nimefurahia kukuona leo.
+             @/@/Mimi ni afisa kutoka Innovations for Poverty Action kutoka Bungoma / Kakamega.
+             @/Tunafanya utafiti kuhusu afya ya watoto kijijini mwako.
+             @/Nimeomba nizungumze na wewe kidogo kwa sababu @B^c.TRI004.BRI004.RI004_fname@B ameniambia kuwa una mtoto mwenye umri chini ya miezi 36.
+             @/Je hii ni kweli? Ni sawa nikikuuliza maswali machache kuhusu [mtoto au watoto] wako?"
+             : TYesNo
+    c1_3b : modc1_3b
+    dob : moddob
+    g : modg
+    ws : modws
+    rcst : modrcst
+    Endpoint "@E@RTHIS IS THE END OF THE QUESTIONNAIRE@R"
+            / "End"
+            : (COMPLETE (1) "@RENTER <1> TO COMPLETE THIS QUESTIONNAIRE@R")
+    ReadOut : (CONTINUE)
+
+LOCALS
+    {PROCEDURE FIELD: PROJECT GLOBAL}
+    intParChil, intParSH, sr, osr, young : INTEGER [2]
+    index : ARRAY [1..8] OF INTEGER
+
+AUXFIELDS
+    aux_decline "@B@GTHANK THE RESPONDENT FOR HER TIME AND PROCEED TO THE NEXT HOUSEHOLD@G@B." : (ENTER), EMPTY
+    aux_steps "@R@BUSE VILLAGE ENROLLMENT LIST TO LOCATE COMPOUND OF RESPONDENT.
+              @/@/IDENTIFY POTENTIAL RESPONDENT.
+              @/@/ATTEMPT TO SPEAK TO THE MAMA ALONE, IF POSSIBLE.@B"
+              : (ENTER)
+    aux_inst "@R@BREAD EXTENDED CONSENT FORM AND OBTAIN SIGNATURE ON 2 CONSENT FORMS
+             @/@/1)@|LEAVE 1 SIGNED CONSENT WITH THE RESPONDENT
+             @/@/2)@|BRING 1 SIGNED CONSENT BACK TO THE OFFICE@B@R"
+             : (ENTER)
+    aux_C101 "@GInterview date has been automatically captured as: @G@B^aux_day/^aux_mon/^aux_yea@B" : (OK)
+    aux_day : INTEGER [2]
+    aux_mon : INTEGER [2]
+    aux_yea : INTEGER [4]
+
+LAYOUT
+    AFTER ipaid NEWPAGE
+
+    BEFORE consent NEWPAGE
+
+    BEFORE sche NEWPAGE
+    AFTER sche NEWPAGE
+
+    BEFORE aux_steps NEWPAGE
+    AFTER aux_steps NEWPAGE
+
+    AFTER aux_inst NEWPAGE
+
+    AFTER ipa_names NEWPAGE
+
+    BEFORE decline NEWPAGE
+
+    BEFORE aux_decline NEWPAGE
+    AFTER aux_decline NEWPAGE
+
+RULES
+    {START TIME STAMP AND DATE STAMP}
+    stimestamp.KEEP
+    IF (stimestamp = EMPTY) THEN
+        stimestamp:= SYSTIME
+    ENDIF
+    sdatestamp.KEEP
+    IF (sdatestamp = EMPTY) THEN
+        sdatestamp:= SYSDATE
+    ENDIF
+
+    {BEGIN}
+    hhid
+    CHECK
+        (LEN (hhid) > 6) "@R@BERROR!@B
+                         @/@/Please check that your @Bhousehold ID@B entry has the @Ucorrect number of digits@U!@R"
+
+    IF NOT ((VAL (SUBSTRING (hhid, 1, 4)) >= 2000 AND VAL (SUBSTRING (hhid, 1, 4)) <= 3999)
+    OR (VAL (SUBSTRING (hhid, 1, 4)) >= 7000 AND VAL (SUBSTRING (hhid, 1, 4)) <= 8999)) THEN
+        ERROR "@R@BERROR!@B
+              @/@/@BVillage ID@B is not in the range of @R@B2000@B@R to @R@B3999@B@R or @R@B7000@B@R to @R@B8999@B@R!
+              @/@/Plese check your entry and try again.@R"
+    ENDIF
+    IF NOT ((VAL (SUBSTRING (hhid, 5, 2)) >= 0 AND VAL (SUBSTRING (hhid, 5, 2)) <= 49)) THEN
+        ERROR "@R@BERROR!@B
+              @/@/@BCompound ID@B is not in the range of @R@B00@B@R to @R@B49@B@R!
+              @/@/Please check your entry and try again.@R"
+    ENDIF
+    IF NOT ((VAL (SUBSTRING (hhid, 7, 7)) >= 1 AND VAL (SUBSTRING (hhid, 7, 7)) <= 9)) THEN
+        ERROR "@R@BERROR!@B
+              @/@/@B@IPregnant Mother Count@I@B is not in the range of @R@B1@B@R to @R@B9@B@R!
+              @/@/Please check your entry and try again.@R"
+    ENDIF
+    hhid2
+    CHECK
+        (LEN (hhid2) > 6) "@R@BERROR!@B
+                          @/@/Please check that your @Bhousehold ID@B entry has the @Ucorrect number of digits@U!@R"
+    IF NOT ((hhid) = (hhid2)) THEN
+        ERROR "@R@BERROR!@B
+              @/@/The @BHousehold ID@Bs entered as @R@B^hhid@B@R and @R@B^hhid2@B@R do not match!
+              @/@/Please check your entries and try again.@R"
+    ENDIF
+    sid.SHOW
+    notif
+    ipaid
+    IF NOT (LEN (ipaid) >= 3) THEN
+        ERROR "@R@BERROR!@B
+              @/@/The @BIPA Staff ID@B entered as @R@B^ipaid@B@R is @Ulower@U than @Bthree@B, which is the minimun number of digits required!
+              @/@/Please check your digits and try again.@R"
+    ENDIF
+    IF (ipaid = RESPONSE) THEN
+        IF GetStffNmes.SEARCH (ipaid) THEN
+            GetStffNmes.READ
+            ipanames:= GetStffNmes.IPASTAFFFIRSTNAME + ' ' + GetStffNmes.IPASTAFFSECONDNAME + ' ' + GetStffNmes.IPASTAFFLASTNAME
+        ELSE
+            ipanames.KEEP
+        ENDIF
+    ENDIF
+    IF (ipanames <> EMPTY) THEN
+        ipanames.SHOW
+    ELSE
+        ipanames.ASK
+    ENDIF
+    sc
+    IF (sc.visit = YES) THEN
+        sche
+    ENDIF
+    v
+    IF NOT (v.aux_end = YES) THEN
+        aux_steps
+        aux_inst
+        cstimestamp.KEEP
+        IF ((aux_inst = RESPONSE) AND (cstimestamp = EMPTY)) THEN
+            {START TIME AFTER READING CONSENT}
+            cstimestamp:= SYSTIME
+        ENDIF
+        consent
+        cetimestamp.KEEP
+        IF (consent = CONSENTS) THEN
+            IF ((cetimestamp = EMPTY) AND (consent = CONSENTS)) THEN
+                {END TIME AFTER RESPONDENT CONSENTS}
+                cetimestamp:= SYSTIME
+            ENDIF
+            signature
+            thumbprint
+            CHECK (signature = YES) OR (thumbprint = YES)
+                "@R@BERROR!@B
+                @/@/You @Bmust@B obtain a @Usignature@U or a @Uthumbprint@U to proceed!"
+            ipa_id
+            IF NOT (LEN (ipa_id) >= 3) THEN
+                ERROR "@R@BERROR!@B
+                      @/@/The @BIPA Staff ID@B entered as @R@B^ipa_id@B@R is @Ulower@U than @Bthree@B, which is the minimun number of digits required!
+                      @/@/Please check your digits and try again.@R"
+            ENDIF
+            IF (ipa_id = RESPONSE) THEN
+                IF GetStffNmes.SEARCH (ipa_id) THEN
+                    GetStffNmes.READ
+                    ipa_names:= GetStffNmes.IPASTAFFFIRSTNAME + ' ' + GetStffNmes.IPASTAFFSECONDNAME + ' ' + GetStffNmes.IPASTAFFLASTNAME
+                ELSE
+                    ipa_names.KEEP
+                ENDIF
+            ENDIF
+            IF (ipa_names <> EMPTY) THEN
+                ipa_names.SHOW
+            ELSE
+                ipa_names.ASK
+            ENDIF
+            C08
+            IF (C08 = YES) THEN
+                C09
+                CHECK
+                    (LEN (C09) > 2) "@R@BERROR!@B
+                                    @/@/Please check that your @Bother interviewer ID@B entry has the @Ucorrect number of digits@U!@R"
+                CHECK
+                    NOT (C09 = ipa_id) "@R@BERROR!@B
+                                       @/@/The @Bother IPA staff ID@B entered as @R@B^C09@B@R matches @Byour IPA staff ID@B entered as @R@B^ipa_id@B@R!
+                                       @/@/Please check your entry and try again."
+                IF (C09 = RESPONSE) THEN
+                    IF GetStffNmes.SEARCH (C09) THEN
+                        GetStffNmes.READ
+                        C09a:= GetStffNmes.IPASTAFFFIRSTNAME + ' ' + GetStffNmes.IPASTAFFSECONDNAME + ' ' + GetStffNmes.IPASTAFFLASTNAME
+                    ELSE
+                        C09a.KEEP
+                    ENDIF
+                ENDIF
+                IF (C09a = EMPTY) THEN
+                    C09a.ASK
+                ELSE
+                    C09a.SHOW
+                ENDIF
+                C010
+                IF (C010 = YES) THEN
+                    C011
+                    CHECK
+                        (LEN (C011) > 2) "@R@BERROR!@B
+                                         @/@/Please check that your @Bother interviewer ID@B entry has the @Ucorrect number of digits@U!@R"
+                    CHECK
+                        NOT (C011 = ipa_id) "@R@BERROR!@B
+                                            @/@/The @Bother IPA staff ID@B entered as @R@B^C011@B@R matches @Byour IPA staff ID@B entered as @R@B^ipa_id@B@R!
+                                            @/@/Please check your entry and try again."
+                    CHECK
+                        NOT (C011 = C09) "@R@BERROR!@B
+                                         @/@/The @Bother IPA staff ID@B entered as @R@B^C011@B@R matches the previous @Bother IPA staff ID@B entered as @R@B^C09@B@R!
+                                         @/@/Please check your entry and try again."
+                    IF (C011 = RESPONSE) THEN
+                        IF GetStffNmes.SEARCH (C011) THEN
+                            GetStffNmes.READ
+                            C011a:= GetStffNmes.IPASTAFFFIRSTNAME + ' ' + GetStffNmes.IPASTAFFSECONDNAME + ' ' + GetStffNmes.IPASTAFFLASTNAME
+                        ELSE
+                            C011a.KEEP
+                        ENDIF
+                    ENDIF
+                    IF (C011a = EMPTY) THEN
+                        C011a.ASK
+                    ELSE
+                        C011a.SHOW
+                    ENDIF
+                ENDIF
+            ENDIF
+            aux_day:= sdatestamp.DAY
+            aux_mon:= sdatestamp.MONTH
+            aux_yea:= sdatestamp.YEAR
+            C101:= TODATE (aux_yea, aux_mon, aux_day)
+            C101.KEEP
+            aux_C101
+            c
+            c0
+            a
+            b
+            m
+            c1
+            c2
+            c3
+            c7
+            c8
+            c9
+            c10
+            IF (b.B19_swa = CAN_READ_AND_WRITE) OR (b.B19_swa = CAN_READ_ONLY) THEN
+                c1102
+            ENDIF
+            c18
+            c19
+            hw
+            pli
+            c8_cont
+            fr
+            e
+            ts
+            IF (sc.visit = NO) THEN
+                sr_read
+                IF (sr_read = YES) THEN
+                    sr_intro
+                    IF (sr_intro = YES) THEN
+                        c1_3b
+                    ENDIF
+                ENDIF
+            ENDIF
+            IF (c1.C106A = YES) THEN
+                dob
+            ENDIF
+            g
+            ws
+            IF (c10.BC10HHMS.C1005 = DK)
+            OR (DISPENSER IN c10.BC10HHMS.C1006) OR (WATERGUARD IN c10.BC10HHMS.C1006) OR (PUR IN c10.BC10HHMS.C1006)
+            OR (DISPENSER IN c10.BC10HHMS.C1009) OR (WATERGUARD IN c10.BC10HHMS.C1009) OR (PUR IN c10.BC10HHMS.C1009)
+            OR (c10.BC10D [1].D2 = PIPED_DWELL) OR (c10.BC10D [1].D2 = PIPED_YARD)
+            OR (ws.WS10 = PIPED_DWELL) OR (ws.WS10 = PIPED_YARD) THEN
+                rcst
+            ENDIF
+            endpoint
+        ELSE
+            decline
+            aux_decline
+            endpoint
+        ENDIF
+    ELSE
+        endpoint
+    ENDIF
+
+    {FINISH}
+
+    {END TIME STAMP AND DATE STAMP}
+
+    etimestamp.KEEP
+    IF ((etimestamp = EMPTY) AND (Endpoint = COMPLETE)) THEN
+        etimestamp:= SYSTIME
+    ENDIF
+    edatestamp.KEEP
+    IF ((edatestamp = EMPTY) AND (Endpoint = COMPLETE)) THEN
+        edatestamp:= SYSDATE
+    ENDIF
+    endpoint.KEEP
+    ReadOut.KEEP
+ENDMODEL

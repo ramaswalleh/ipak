@@ -1,0 +1,4 @@
+LIBRARY libMoney
+    TYPE
+        TMoney = STRING [5] {KShs |_|_|,|_|_|_|}
+ENDLIBRARY

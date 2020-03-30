@@ -1,0 +1,4 @@
+LIBRARY libLabelID
+TYPE
+    TLabelID = STRING [10]
+ENDLIBRARY

@@ -1,0 +1,7 @@
+DATAMODEL InputData
+    PRIMARY
+        hhid
+FIELDS
+    hhid : STRING [7]
+    sid : STRING [5]
+ENDMODEL

@@ -1,0 +1,5 @@
+LIBRARY libECoordinate
+TYPE
+    { This string should have Input mask: E °|__|__|__|.|__|__|__|__|__| }
+	TECoordinate = STRING [8]
+ENDLIBRARY

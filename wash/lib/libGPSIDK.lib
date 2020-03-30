@@ -1,0 +1,5 @@
+LIBRARY libGPSIDK
+TYPE
+    { This string should have Input mask: K|__|__| }
+	TGPSIDK = STRING [2]
+ENDLIBRARY

@@ -1,0 +1,9 @@
+LIBRARY libYesNo
+SETTINGS
+    LANGUAGES = Eng "English",
+                Swa "Swahili"
+TYPE
+    {TYPE YES NO.}
+    TYesNo = (YES (1) "Yes" "Ndiyo",
+                NO (2) "No" "La")
+ENDLIBRARY

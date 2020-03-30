@@ -1,0 +1,17 @@
+SETTINGS
+    DESCRIPTION = 'BLAISE TO BLAISE'
+
+USES
+    inputmeta '..\baseline'
+
+INPUTFILE
+    inputdata : inputmeta ('..\baseline', BLAISE)
+
+OUTPUTFILE
+    ouputdata : inputmeta ('..\data\BG09122012', BLAISE)
+    SETTINGS
+        MAKENEWFILE = NO
+        RENEW = YES
+
+MANIPULATE
+    ouputdata.WRITE

@@ -1,0 +1,150 @@
+PROCESS backchecks
+
+SETTINGS
+    DESCRIPTION = 'BLAISE TO ASCII'
+
+USES
+    inputmeta1 'C:\Users\ramadhan swalleh\Dropbox\WASH Benefits Main RCT\Data\Data Quality\Backchecks\back-checks_blaise\back_checks_survey_versions_2013.07.15\Bungoma Back-checks\survey1-Bgm\back_checks_survey1'
+    inputmeta2 'C:\Users\ramadhan swalleh\Dropbox\WASH Benefits Main RCT\Data\Data Quality\Backchecks\back-checks_blaise\back_checks_survey_versions_2013.07.15\Bungoma Back-checks\survey2-Bgm\back_checks_survey2'
+    inputmeta3 'C:\Users\ramadhan swalleh\Dropbox\WASH Benefits Main RCT\Data\Data Quality\Backchecks\back-checks_blaise\back_checks_survey_versions_2013.07.15\Bungoma Back-checks\survey3-Bgm\back_checks_survey3'
+    inputmeta4 'C:\Users\ramadhan swalleh\Dropbox\WASH Benefits Main RCT\Data\Data Quality\Backchecks\back-checks_blaise\back_checks_survey_versions_2013.07.15\Bungoma Back-checks\survey4-Bgm\back_checks_survey4'
+    inputmeta5 'C:\Users\ramadhan swalleh\Dropbox\WASH Benefits Main RCT\Data\Data Quality\Backchecks\back-checks_blaise\back_checks_survey_versions_2013.07.15\Bungoma Back-checks\survey5-Bgm\back_checks_survey5'
+
+INPUTFILE
+    inputdata1 : inputmeta1 ('BLAISE_back_checks_survey1', BLAISE)
+    SETTINGS
+        OPEN = NO
+
+INPUTFILE
+    inputdata2 : inputmeta2 ('BLAISE_back_checks_survey2', BLAISE)
+    SETTINGS
+        OPEN = NO
+
+INPUTFILE
+    inputdata3 : inputmeta3 ('BLAISE_back_checks_survey3', BLAISE)
+    SETTINGS
+        OPEN = NO
+
+INPUTFILE
+    inputdata4 : inputmeta4 ('BLAISE_back_checks_survey4', BLAISE)
+    SETTINGS
+        OPEN = NO
+
+INPUTFILE
+    inputdata5 : inputmeta5 ('BLAISE_back_checks_survey5', BLAISE)
+    SETTINGS
+        OPEN = NO
+
+OUTPUTFILE
+    outputdata1 : inputmeta1 ('ASCII_back_checks_survey1.asc', ASCII)
+    SETTINGS
+        SEPARATOR = ','
+        DELIMITER = '"'
+
+OUTPUTFILE
+    outputdata2 : inputmeta2 ('ASCII_back_checks_survey2.asc', ASCII)
+    SETTINGS
+        SEPARATOR = ','
+        DELIMITER = '"'
+
+OUTPUTFILE
+    outputdata3 : inputmeta3 ('ASCII_back_checks_survey3.asc', ASCII)
+    SETTINGS
+        SEPARATOR = ','
+        DELIMITER = '"'
+
+OUTPUTFILE
+    outputdata4 : inputmeta4 ('ASCII_back_checks_survey4.asc', ASCII)
+    SETTINGS
+        SEPARATOR = ','
+        DELIMITER = '"'
+
+OUTPUTFILE
+    outputdata5 : inputmeta5 ('ASCII_back_checks_survey5.asc', ASCII)
+    SETTINGS
+        SEPARATOR = ','
+        DELIMITER = '"'
+
+AUXFIELDS
+    x : INTEGER
+
+MANIPULATE
+    outputdata1.OPEN
+    x:= 0
+    inputdata1.OPEN
+    inputdata1.INITRECORD
+    inputdata1.READNEXT
+    REPEAT
+        inputdata1.COPY
+        outputdata1.WRITE
+        x:= x + 1
+        inputdata1.READNEXT
+    UNTIL inputdata1.EOF
+    inputdata1.CLOSE
+    outputdata1.CLOSE
+    display ('back_checks_survey1'
+             + '@/@/Converted ' + STR (x) + ' number of records in total.', WAIT)
+
+    outputdata2.OPEN
+    x:= 0
+    inputdata2.OPEN
+    inputdata2.INITRECORD
+    inputdata2.READNEXT
+    REPEAT
+        inputdata2.COPY
+        outputdata2.WRITE
+        x:= x + 1
+        inputdata2.READNEXT
+    UNTIL inputdata2.EOF
+    inputdata2.CLOSE
+    outputdata2.CLOSE
+    display ('back_checks_survey2'
+             + '@/@/Converted ' + STR (x) + ' number of records in total.', WAIT)
+
+    outputdata3.OPEN
+    x:= 0
+    inputdata3.OPEN
+    inputdata3.INITRECORD
+    inputdata3.READNEXT
+    REPEAT
+        inputdata3.COPY
+        outputdata3.WRITE
+        x:= x + 1
+        inputdata3.READNEXT
+    UNTIL inputdata3.EOF
+    inputdata3.CLOSE
+    outputdata3.CLOSE
+    display ('back_checks_survey3'
+             + '@/@/Converted ' + STR (x) + ' number of records in total.', WAIT)
+
+    outputdata4.OPEN
+    x:= 0
+    inputdata4.OPEN
+    inputdata4.INITRECORD
+    inputdata4.READNEXT
+    REPEAT
+        inputdata4.COPY
+        outputdata4.WRITE
+        x:= x + 1
+        inputdata4.READNEXT
+    UNTIL inputdata4.EOF
+    inputdata4.CLOSE
+    outputdata4.CLOSE
+    display ('back_checks_survey4'
+             + '@/@/Converted ' + STR (x) + ' number of records in total.', WAIT)
+
+    outputdata5.OPEN
+    x:= 0
+    inputdata5.OPEN
+    inputdata5.INITRECORD
+    inputdata5.READNEXT
+    REPEAT
+        inputdata5.COPY
+        outputdata5.WRITE
+        x:= x + 1
+        inputdata5.READNEXT
+    UNTIL inputdata5.EOF
+    inputdata5.CLOSE
+    outputdata5.CLOSE
+    display ('back_checks_survey5'
+             + '@/@/Converted ' + STR (x) + ' number of records in total.', WAIT)

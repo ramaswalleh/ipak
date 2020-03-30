@@ -1,0 +1,5 @@
+LIBRARY libGPSIDWB
+TYPE
+    { This string should have Input mask: WB|__|__| }
+	TGPSIDWB = STRING [2]
+ENDLIBRARY

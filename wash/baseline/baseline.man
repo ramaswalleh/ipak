@@ -1,0 +1,27 @@
+PROCESS baseline
+
+SETTINGS
+    DESCRIPTION = 'General procedures'
+
+USES
+    WriteSRNames '..\ext\SecResp'
+
+UPDATEFILE
+    WriteSRNms : WriteSRNames ('..\ext\SecResp', BLAISE)
+
+PROCEDURE WriteSecRespNames
+PARAMETERS
+    IMPORT FNAME : STRING
+    IMPORT SNAME : STRING
+    IMPORT LNAME : STRING
+    IMPORT ID : STRING
+
+INSTRUCTIONS
+    WriteSRNms.OPEN ('..\ext\SecResp')
+    WriteSRNms.SRFIRSTNAME:= FNAME
+    WriteSRNms.SRSECONDNAME:= SNAME
+    WriteSRNms.SRLASTNAME:= LNAME
+    WriteSRNms.SRID:= ID
+    WriteSRNms.WRITE
+    WriteSRNms.RELEASE
+ENDPROCEDURE

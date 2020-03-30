@@ -1,0 +1,186 @@
+PROCESS backchecks
+
+SETTINGS
+    DESCRIPTION = 'BLAISE TO BLAISE'
+
+USES
+    inputmeta1 'C:\Users\ramadhan swalleh\Dropbox\WASH Benefits Main RCT\Data\Data Quality\Backchecks\back-checks_blaise\back_checks_survey_versions_2013.07.15\Bungoma Back-checks\survey1-Bgm\back_checks_survey1'
+    inputmeta2 'C:\Users\ramadhan swalleh\Dropbox\WASH Benefits Main RCT\Data\Data Quality\Backchecks\back-checks_blaise\back_checks_survey_versions_2013.07.15\Bungoma Back-checks\survey2-Bgm\back_checks_survey2'
+    inputmeta3 'C:\Users\ramadhan swalleh\Dropbox\WASH Benefits Main RCT\Data\Data Quality\Backchecks\back-checks_blaise\back_checks_survey_versions_2013.07.15\Bungoma Back-checks\survey3-Bgm\back_checks_survey3'
+    inputmeta4 'C:\Users\ramadhan swalleh\Dropbox\WASH Benefits Main RCT\Data\Data Quality\Backchecks\back-checks_blaise\back_checks_survey_versions_2013.07.15\Bungoma Back-checks\survey4-Bgm\back_checks_survey4'
+    inputmeta5 'C:\Users\ramadhan swalleh\Dropbox\WASH Benefits Main RCT\Data\Data Quality\Backchecks\back-checks_blaise\back_checks_survey_versions_2013.07.15\Bungoma Back-checks\survey5-Bgm\back_checks_survey5'
+
+INPUTFILE
+    inputdata1 : inputmeta1 (BLAISE)
+    SETTINGS
+        OPEN = NO
+
+INPUTFILE
+    inputdata2 : inputmeta2 (BLAISE)
+    SETTINGS
+        OPEN = NO
+
+INPUTFILE
+    inputdata3 : inputmeta3 (BLAISE)
+    SETTINGS
+        OPEN = NO
+
+INPUTFILE
+    inputdata4 : inputmeta4 (BLAISE)
+    SETTINGS
+        OPEN = NO
+
+INPUTFILE
+    inputdata5 : inputmeta5 (BLAISE)
+    SETTINGS
+        OPEN = NO
+
+OUTPUTFILE
+    outputdata1 : inputmeta1 ('BLAISE_back_checks_survey1', BLAISE)
+    SETTINGS
+        MAKENEWFILE = NO
+        RENEW = YES
+
+OUTPUTFILE
+    outputdata2 : inputmeta2 ('BLAISE_back_checks_survey2', BLAISE)
+    SETTINGS
+        MAKENEWFILE = NO
+        RENEW = YES
+
+OUTPUTFILE
+    outputdata3 : inputmeta3 ('BLAISE_back_checks_survey3', BLAISE)
+    SETTINGS
+        MAKENEWFILE = NO
+        RENEW = YES
+
+OUTPUTFILE
+    outputdata4 : inputmeta4 ('BLAISE_back_checks_survey4', BLAISE)
+    SETTINGS
+        MAKENEWFILE = NO
+        RENEW = YES
+
+OUTPUTFILE
+    outputdata5 : inputmeta5 ('BLAISE_back_checks_survey5', BLAISE)
+    SETTINGS
+        MAKENEWFILE = NO
+        RENEW = YES
+
+AUXFIELDS
+    i, x : INTEGER
+    str_i : STRING
+
+MANIPULATE
+    outputdata1.OPEN
+    x:= 0
+    i:= 21
+    WHILE (i <= 23) DO
+        str_i:= STR (i)
+        IF (FILEEXISTS ('Z:\WASHBENEFITSBGM\2013\BACKCHECKS\2013\August\' + str_i + '\paul\back_checks_survey1.bdb')) THEN
+            inputdata1.OPEN ('Z:\WASHBENEFITSBGM\2013\BACKCHECKS\2013\August\' + str_i + '\paul\back_checks_survey1')
+            inputdata1.INITRECORD
+            inputdata1.READNEXT
+            REPEAT
+                inputdata1.COPY
+                outputdata1.WRITE
+                x:= x + 1
+                inputdata1.READNEXT
+            UNTIL inputdata1.EOF
+            inputdata1.CLOSE
+        ENDIF
+        i:= i + 1
+    ENDWHILE
+    outputdata1.CLOSE
+    display ('back_checks_survey1'
+             + '@/@/Wrote ' + STR (x) + ' number of records in total.', WAIT)
+
+    outputdata2.OPEN
+    x:= 0
+    i:= 21
+    WHILE (i <= 23) DO
+        str_i:= STR (i)
+        IF (FILEEXISTS ('Z:\WASHBENEFITSBGM\2013\BACKCHECKS\2013\August\' + str_i + '\paul\back_checks_survey2.bdb')) THEN
+            inputdata2.OPEN ('Z:\WASHBENEFITSBGM\2013\BACKCHECKS\2013\August\' + str_i + '\paul\back_checks_survey2')
+            inputdata2.INITRECORD
+            inputdata2.READNEXT
+            REPEAT
+                inputdata2.COPY
+                outputdata2.WRITE
+                x:= x + 1
+                inputdata2.READNEXT
+            UNTIL inputdata2.EOF
+            inputdata2.CLOSE
+        ENDIF
+        i:= i + 1
+    ENDWHILE
+    outputdata2.CLOSE
+    display ('back_checks_survey2'
+             + '@/@/Wrote ' + STR (x) + ' number of records in total.', WAIT)
+
+    outputdata3.OPEN
+    x:= 0
+    i:= 21
+    WHILE (i <= 23) DO
+        str_i:= STR (i)
+        IF (FILEEXISTS ('Z:\WASHBENEFITSBGM\2013\BACKCHECKS\2013\August\' + str_i + '\paul\back_checks_survey3.bdb')) THEN
+            inputdata3.OPEN ('Z:\WASHBENEFITSBGM\2013\BACKCHECKS\2013\August\' + str_i + '\paul\back_checks_survey3')
+            inputdata3.INITRECORD
+            inputdata3.READNEXT
+            REPEAT
+                inputdata3.COPY
+                outputdata3.WRITE
+                x:= x + 1
+                inputdata3.READNEXT
+            UNTIL inputdata3.EOF
+            inputdata3.CLOSE
+        ENDIF
+        i:= i + 1
+    ENDWHILE
+    outputdata3.CLOSE
+    display ('back_checks_survey3'
+             + '@/@/Wrote ' + STR (x) + ' number of records in total.', WAIT)
+
+    outputdata4.OPEN
+    x:= 0
+    i:= 21
+    WHILE (i <= 23) DO
+        str_i:= STR (i)
+        IF (FILEEXISTS ('Z:\WASHBENEFITSBGM\2013\BACKCHECKS\2013\August\' + str_i + '\paul\back_checks_survey4.bdb')) THEN
+            inputdata4.OPEN ('Z:\WASHBENEFITSBGM\2013\BACKCHECKS\2013\August\' + str_i + '\paul\back_checks_survey4')
+            inputdata4.INITRECORD
+            inputdata4.READNEXT
+            REPEAT
+                inputdata4.COPY
+                outputdata4.WRITE
+                x:= x + 1
+                inputdata4.READNEXT
+            UNTIL inputdata4.EOF
+            inputdata4.CLOSE
+        ENDIF
+        i:= i + 1
+    ENDWHILE
+    outputdata4.CLOSE
+    display ('back_checks_survey4'
+             + '@/@/Wrote ' + STR (x) + ' number of records in total.', WAIT)
+
+    outputdata5.OPEN
+    x:= 0
+    i:= 21
+    WHILE (i <= 23) DO
+        str_i:= STR (i)
+        IF (FILEEXISTS ('Z:\WASHBENEFITSBGM\2013\BACKCHECKS\2013\August\' + str_i + '\paul\back_checks_survey5.bdb')) THEN
+            inputdata5.OPEN ('Z:\WASHBENEFITSBGM\2013\BACKCHECKS\2013\August\' + str_i + '\paul\back_checks_survey5')
+            inputdata5.INITRECORD
+            inputdata5.READNEXT
+            REPEAT
+                inputdata5.COPY
+                outputdata5.WRITE
+                x:= x + 1
+                inputdata5.READNEXT
+            UNTIL inputdata5.EOF
+            inputdata5.CLOSE
+        ENDIF
+        i:= i + 1
+    ENDWHILE
+    outputdata5.CLOSE
+    display ('back_checks_survey5'
+             + '@/@/Wrote ' + STR (x) + ' number of records in total.', WAIT)

@@ -1,0 +1,660 @@
+PROCESS WASH "WASH baseline"
+
+SETTINGS
+    DATEFORMAT = DDMMYY
+    CONNECT = YES
+
+USES
+    InputMeta "Input\InputData"
+    WASH_BL '\ipak\wash\baseline\baseline'
+
+DATAMODEL ID
+PRIMARY
+    IDText
+FIELDS
+    IDText : STRING [4]
+    IDNum : STRING [2]
+ENDMODEL
+
+DATAMODEL Counter
+FIELDS
+    IDCount : STRING [3]
+ENDMODEL
+
+DATAMODEL OneLine
+FIELDS
+    OneLine : STRING [200]
+ENDMODEL
+
+DATAMODEL BrowseMeta
+PRIMARY
+    hhid, sid
+FIELDS
+    hhid : STRING [7]
+    sid : STRING [5]
+    edatestamp : DATETYPE
+    etimestamp : TIMETYPE
+    SortField : STRING [20]
+ENDMODEL
+
+INPUTFILE IDFile : ID ('\Blaise\ID.txt', ASCII)
+    SETTINGS
+        OPEN = NO
+    LINKFIELDS
+        IDText
+
+INPUTFILE LastNum : Counter ('', ASCII)
+    SETTINGS
+        OPEN = NO
+
+INPUTFILE InFile : InputMeta ('Input\InputData', BLAISE)
+    SETTINGS
+        OPEN = NO
+
+UPDATEFILE WASH_BLDATA : WASH_BL ('\ipak\wash\baseline\WASH_BLDATA', BLAISE)
+    SETTINGS
+        OPEN = NO
+
+UPDATEFILE OutData : WASH_BL ('\ipak\wash\baseline\_Out\WASH_BLDATA', BLAISE)
+    SETTINGS
+        OPEN = NO
+
+UPDATEFILE DailyData : WASH_BL (BLAISE)
+    SETTINGS
+        OPEN = NO
+
+TEMPORARYFILE BrowseFile : BrowseMeta
+    SETTINGS
+        KEY = PRIMARY
+
+OUTPUTFILE NextNum : Counter ('', ASCII)
+    SETTINGS
+        OPEN = NO
+        MAKENEWFILE = YES
+
+OUTPUTFILE LogFile : OneLine ('\ipak\wash\baseline\Stow\Log.txt', ASCII)
+    SETTINGS
+        MAKENEWFILE = NO
+
+AUXFIELDS
+    Reslt : INTEGER
+    Stop, Stop2 : (YES, NO)
+    OneOKButton : (OK "Hit this button for alrighty!")
+    TaskButton : (BASELINE "Baseline",
+                  IPAA "IPAA Survey",
+                  EXIT "Exit",
+                  ABOUT "About")
+    ShowButton : (BASELINE "Baseline",
+                  IPAA "IPAA Survey",
+                  CANCEL "Cancel",
+                  ABOUT "About")
+    IDButton : (CONTINUE "Continue",
+                EXIT "Exit")
+    AbortButton : (SAVE "Save")
+    Quit : (YES, NO)
+
+    auxID1 / "Household ID" : STRING [7], EMPTY
+    auxID2 / "Survey ID" : STRING [5], EMPTY
+    Password : STRING [10], EMPTY
+    auxYr : STRING [4]
+    auxMnth, auxDay : STRING [2]
+    auxHr, auxMin, auxSec : STRING [2]
+    auxOutName : STRING [30]
+    auxIDNum : STRING [2]
+    auxDailyFolder, auxDailyDB : STRING [100], EMPTY
+    auxParm : STRING [25]
+    auxOut_OK : 0..1
+    auxDialogTitle : STRING [40]
+
+DIALOGBOX AskTask " "
+    SIZE = (800, 400)
+    TEXT = ('<HTML><CENTER><FONT FACE="verdana" color="blue" size="20">IPAK WASH Study', 0, 50)
+    BUTTON TaskButton
+        SIZE = (150, 150)
+        POSITION = (50, 150)
+        VALUE = BASELINE
+        FONTSIZE = 18
+        CAPTION = 'Baseline'
+    BUTTON TaskButton
+        SIZE = (300, 150)
+        POSITION = (250, 150)
+        VALUE = IPAA
+        FONTSIZE = 18
+        CAPTION = 'IPAA Survey'
+    BUTTON TaskButton
+        SIZE = (150, 150)
+        POSITION = (600, 150)
+        VALUE = EXIT
+        FONTSIZE = 18
+        CAPTION = 'Exit'
+    BUTTON TaskButton
+        VALUE = ABOUT
+        POSITION = (720, 370)
+        CAPTION = 'About'
+
+DIALOGBOX AskID "Enter ID"
+    SIZE = (400, 300)
+    TEXT = ('<HTML><CENTER><FONT FACE="verdana" color="blue" size="20">Enter ID', 0, 20)
+    CONTROL auxID1
+        FONTSIZE = 14
+        POSITION = (200, 80)
+        LABEL = ("Household ID", 50, 80)
+    CONTROL auxID2
+        EDIT = NO
+        FONTSIZE = 14
+        POSITION = (200, 150)
+        LABEL = ("Survey ID", 50, 150)
+
+    BUTTON IDButton
+        SIZE = (100, 50)
+        VALUE = CONTINUE
+        FONTSIZE = 16
+        CAPTION = 'Continue'
+    BUTTON IDButton
+        SIZE = (100, 50)
+        VALUE = EXIT
+        FONTSIZE = 16
+        CAPTION = 'Exit'
+
+DIALOGBOX AboutDialog "About this setup"
+    SIZE = (240, 195)
+    TEXT = ('@>This is the WASH study menu system', 1, 15)
+    TEXT = ('@>produced for Innovations for Poverty Action Kenya', 1, 40)
+    TEXT = ('@>by Ramadhan Swalleh of IPAK WASH', 1, 70)
+    TEXT = ('@>© 2012, Innovations for Poverty Action', 1, 90)
+    BUTTON OneOKButton
+        VALUE = OK
+
+DIALOGBOX AbortSurvey "Abort survey"
+    SIZE = (200, 155)
+    ESCAPE = NO
+    TEXT = ('@>Enter reason for aborting survey:', 1, 15)
+    CONTROL WASH_BLDATA.g.G9
+        LABEL = NO
+        SIZE = (155, 55)
+        FONTSIZE = 9
+        POSITION = (27, 40)
+
+    BUTTON AbortButton
+        VALUE = SAVE
+        CAPTION = 'Save'
+
+PROCEDURE pLog
+PARAMETERS
+    piLogString : STRING
+INSTRUCTIONS
+    LogFile.OPEN
+    LogFile.OneLine:= DATETOSTR (SYSDATE) + ' ' + TIMETOSTR (SYSTIME) + piLogString
+    LogFile.WRITE
+    LogFile.RELEASE
+ENDPROCEDURE
+
+PROCEDURE pCounter
+    pLog (', pCounter')
+    IF FILEEXISTS ('SurveyCounter.txt') THEN
+        LastNum.OPEN ('SurveyCounter.txt')
+        LastNum.READNEXT
+        auxID2:= STR (VAL (LastNum.IDCount) + 1)
+        IF VAL (auxID2) < 10 THEN
+            auxID2:= '00' + STR (VAL (auxID2))
+        ELSEIF (VAL (auxID2) > 9) AND (VAL (auxID2) < 100) THEN
+            auxID2:= '0' + STR (VAL (auxID2))
+        ELSE
+            auxID2:= STR (VAL (auxID2))
+        ENDIF
+        LastNum.CLOSE
+        LastNum.RELEASE
+    ELSE
+        auxID2:= '001'
+    ENDIF
+    auxID2:= (auxIDNum + auxID2)
+ENDPROCEDURE
+
+PROCEDURE pWriteCounter
+    pLog (', pWriteCounter')
+    NextNum.OPEN ('SurveyCounter.txt')
+    NextNum.IDCount:= SUBSTRING (auxID2, 3, 5)
+    NextNum.WRITE
+    NextNum.CLOSE
+ENDPROCEDURE
+
+PROCEDURE FillBrowseData
+    pLog (', FillBrowseData')
+    BrowseFile.INITRECORD
+    BrowseFile.hhid:= WASH_BLDATA.hhid
+    BrowseFile.sid:= WASH_BLDATA.sid
+    BrowseFile.edatestamp:= WASH_BLDATA.edatestamp
+    BrowseFile.etimestamp:= WASH_BLDATA.etimestamp
+ENDPROCEDURE
+
+PROCEDURE FillBrowseFile
+    pLog (', FillBrowseFile')
+    BrowseFile.ERASE
+    WASH_BLDATA.OPEN
+    WASH_BLDATA.READNEXT
+    WHILE (WASH_BLDATA.RESULTOK) DO
+        FillBrowseData
+        BrowseFile.WRITE
+        WASH_BLDATA.READNEXT
+    ENDWHILE
+    WASH_BLDATA.CLOSE
+ENDPROCEDURE
+
+PROCEDURE EditEntry
+    pLog (', EditEntry')
+    WASH_BLDATA.OPEN
+    Reslt:= WASH_BLDATA.EDIT ('/G /K' + BrowseFile.hhid + ';' + BrowseFile.sid + ' /X /MIPA_Menu.bmf')
+    WASH_BLDATA.CLOSE
+    FillBrowseData
+    BrowseFile.WRITE
+ENDPROCEDURE
+
+DIALOGBOX ShowBrowseFile "Existing cases for ^auxDialogTitle"
+    SIZE = (800, 450)
+    DEFAULTBUTTON = YES
+    LOOKUP BrowseFile
+        FONTSIZE = 14
+        SIZE = (800, 380)
+        FIELDS
+            hhid "Household ID"
+            sid "Survey ID"
+            edatestamp "End Date Stamp"
+            etimestamp "End Time Stamp"
+
+    BUTTON ShowButton
+    SIZE = (110, 50)
+    POSITION = (200, 390)
+    FONTSIZE = 16
+    VALUE = BASELINE
+    CAPTION = 'Select'
+
+    BUTTON ShowButton
+    SIZE = (110, 50)
+    POSITION = (500, 390)
+    FONTSIZE = 16
+    VALUE = CANCEL
+    CAPTION = 'Cancel'
+
+PROCEDURE pDateTime
+    pLog (', pDateTime: Entry')
+    auxHr:= EMPTY
+    auxMin:= EMPTY
+    auxSec:= EMPTY
+    auxDay:= EMPTY
+    auxMnth:= EMPTY
+    auxYr:= EMPTY
+    IF HOUR (SYSTIME) < 10 THEN
+        auxHr:= '0' + STR (HOUR (SYSTIME))
+    ELSE
+        auxHr:= STR (HOUR (SYSTIME))
+    ENDIF
+    IF MINUTE (SYSTIME) < 10 THEN
+        auxMin:= '0' + STR (MINUTE (SYSTIME))
+    ELSE
+        auxMin:= STR (MINUTE (SYSTIME))
+    ENDIF
+    IF SECOND (SYSTIME) < 10 THEN
+        auxSec:= '0' + STR (SECOND (SYSTIME))
+    ELSE
+        auxSec:= STR (SECOND (SYSTIME))
+    ENDIF
+    IF DAY (SYSDATE) < 10 THEN
+        auxDay:= '0' + STR (DAY (SYSDATE))
+    ELSE
+        auxDay:= STR (DAY (SYSDATE))
+    ENDIF
+    IF MONTH (SYSDATE) < 10 THEN
+        auxMnth:= '0' + STR (MONTH (SYSDATE))
+    ELSE
+        auxMnth:= STR (MONTH (SYSDATE))
+    ENDIF
+    auxYr:= STR (YEAR (SYSDATE))
+    pLog (', DateTime: Exit')
+    auxDailyFolder:= ('\ipak\wash\baseline\DAILYCOMPLETEDSURVEYS\' + 'WASH_BL' + auxIDNum + auxYr + auxMnth + auxDay)
+    auxDailyDB:= ('WASH_BLDATA' + auxIDNum + auxYr + auxMnth + auxDay)
+ENDPROCEDURE
+
+PROCEDURE pUnzipInput
+    pLog (', pUnzipInput: Entry')
+    Reslt:= RUN (auxParm + '\Blaise\wzunzip -sgoodstuff ' + auxParm + '\ipak\wash\baseline\input\Input_Data.zip \ipak\wash\baseline\input\', WAIT)
+    pLog (', pUnzipInput: Exit')
+ENDPROCEDURE
+
+PROCEDURE pEraseInput
+    pLog (', pEraseInput')
+    IF FILEEXISTS (auxParm + '\ipak\wash\baseline\input\InputData.bdb') THEN
+        Reslt:= RUN (auxParm + '\Blaise\eraserl -file ' + auxParm + '\ipak\wash\baseline\input\InputData.bdb -resultsonerror -queue -method DOD_E ', WAIT)
+        Reslt:= RUN (auxParm + '\Blaise\eraserl -file ' + auxParm + '\ipak\wash\baseline\input\InputData.bpk -resultsonerror -queue -method DOD_E ', WAIT)
+        Reslt:= RUN (auxParm + '\Blaise\eraserl -file ' + auxParm + '\ipak\wash\baseline\input\InputData.bjk -resultsonerror -queue -method DOD_E ', WAIT)
+        Reslt:= RUN (auxParm + '\Blaise\eraserl -file ' + auxParm + '\ipak\wash\baseline\input\InputData.bfi -resultsonerror -queue -method DOD_E ', WAIT)
+    ENDIF
+ENDPROCEDURE
+
+PROCEDURE pNewCase
+    pLog (', pNewCase')
+    REPEAT
+        auxID1:= EMPTY
+        auxID2:= EMPTY
+        IDButton:= EMPTY
+        pCounter
+        AskID
+        IF (IDButton = EXIT) THEN
+            InFile.RELEASE
+            pEraseInput
+            EXITREPEAT
+        ELSEIF (IDButton = CONTINUE) THEN
+            IF (auxID1 = RESPONSE) THEN
+                IF FILEEXISTS (auxParm + '\ipak\wash\baseline\WASH_BLDATA.bdb') THEN
+                    WASH_BLDATA.OPEN
+                    WASH_BLDATA.GET (auxID1, auxID2)
+                    IF (WASH_BLDATA.RESULTOK) THEN
+                        DISPLAY ('Record already exists, re-opening case.', WAIT)
+                        EXITREPEAT
+                    ENDIF
+                ENDIF
+                pWriteCounter
+                pUnzipInput
+                InFile.OPEN
+                {InFile.GET (auxID1)
+                IF (InFile.RESULTOK) THEN}
+                    WASH_BLDATA.OPEN
+                    WASH_BLDATA.INITRECORD
+                    WASH_BLDATA.hhid:= auxID1
+                    WASH_BLDATA.sid:= auxID2
+                    WASH_BLDATA.WRITE
+                    IDButton:= EXIT
+                {ELSE
+                    DISPLAY ('Household ID ' + auxID1 + ' is not valid. Try again.', WAIT)
+                ENDIF}
+                InFile.RELEASE
+                pEraseInput
+            ELSE
+                DISPLAY ('Household ID entered as ' + auxID1 + ' is not a valid entry. Try again.', WAIT)
+            ENDIF
+        ENDIF
+    UNTIL (IDButton = EXIT)
+ENDPROCEDURE
+
+PROCEDURE pGetData
+    pLog (', pGetData: Entry')
+    IF FILEEXISTS (auxParm + '\ipak\wash\baseline\WASH_BLDATA.bdb') THEN
+        pLog (', pGetData: FILEEXISTS')
+        WASH_BLDATA.OPEN
+        IF (WASH_BLDATA.FORMCOUNT >= 1) THEN
+            pLog (', pGetData: FORMCOUNT >= 1')
+            IF CONFIRM ('Resume existing case?') THEN
+                pLog (', pGetMainData: Resume existing case before start')
+                ShowButton:= EMPTY
+                FillBrowseFile
+                BrowseFile.RESET
+                auxDialogTitle:= 'Baseline Module'
+                ShowBrowseFile
+                IF (ShowButton = BASELINE) THEN
+                    EditEntry
+                ENDIF
+                pLog (', pGetData: Resume existing case, after end')
+            ELSE
+                pLog (', pGetData: Do not resume existing case')
+                IF CONFIRM ('New case?') THEN
+                    pNewCase
+                    IF (auxID1 = RESPONSE) THEN
+                        pLog (', pGetData: Before new case, alternate to resume case')
+                        Reslt:= WASH_BLDATA.EDIT ('/G /K' + auxID1 + ';' + auxID2 + ' /X /MIPA_Menu.bmf')
+                        IF (WASH_BLDATA.endpoint <> COMPLETE) THEN
+                            REPEAT
+                                AbortSurvey
+                                IF ((AbortButton = SAVE) AND (WASH_BLDATA.g.G9 = '')) THEN
+                                    Quit:= NO
+                                    DISPLAY ('You must enter a reason for prematurely ending the survey before you can save and exit.', WAIT)
+                                ELSE
+                                    Quit:= YES
+                                    WASH_BLDATA.g.G8:= YES
+                                    WASH_BLDATA.WRITE
+                                    DISPLAY ('Your reason was saved to MODULE G: Question V9 of the current survey.', WAIT)
+                                ENDIF
+                            UNTIL (Quit = YES)
+                        ENDIF
+                        pLog (', pGetData: After new case, alternate to resume case')
+                    ENDIF
+                ENDIF
+            ENDIF
+        ELSE
+            pLog (', pGetData: DB exists but form count = 0, probable frozen screen')
+        ENDIF
+    ELSE
+        pLog (', pGetData: File does not exist')
+        IF CONFIRM ('New case?') THEN
+            pNewCase
+            IF (auxID1 = RESPONSE) THEN
+                pLog (', pGetData: Before new case, no case to resume')
+                Reslt:= WASH_BLDATA.EDIT ('/G /K' + auxID1 + ';' + auxID2 + ' /X /MIPA_Menu.bmf')
+                IF (WASH_BLDATA.endpoint <> COMPLETE) THEN
+                    REPEAT
+                        AbortSurvey
+                        IF ((AbortButton = SAVE) AND (WASH_BLDATA.g.G9 = '')) THEN
+                            Quit:= NO
+                            DISPLAY ('You must enter a reason for prematurely ending the survey before you can save and exit.', WAIT)
+                        ELSE
+                            Quit:= YES
+                            WASH_BLDATA.g.G8:= YES
+                            WASH_BLDATA.WRITE
+                            DISPLAY ('Your reason was saved to MODULE G: Question V9 of the current survey.', WAIT)
+                        ENDIF
+                    UNTIL (Quit = YES)
+                ENDIF
+                pLog (', pGetData: After new case, no case to resume')
+            ENDIF
+        ENDIF
+    ENDIF
+    WASH_BLDATA.RELEASE
+    pLog (', pGetData: Release database and exit')
+ENDPROCEDURE
+
+PROCEDURE pCreateDir
+    pDateTime
+    Reslt:= RUN ('CREATEDIRECTORY ' + auxDailyFolder)
+ENDPROCEDURE
+
+PROCEDURE pDataOut
+    pLog (', pDataOut: Entry')
+    auxOut_OK:= EMPTY
+    IF FILEEXISTS (auxParm + '\ipak\wash\baseline\WASH_BLDATA.bdb') THEN
+        WASH_BLDATA.OPEN
+        WASH_BLDATA.RESET
+
+        REPEAT
+            WASH_BLDATA.READNEXT
+            pLog (', pDataOut: REPEAT')
+            IF (WASH_BLDATA.endpoint = COMPLETE) AND (WASH_BLDATA.ReadOut = EMPTY) THEN
+                pLog (', pDataOut: In REPEAT / In first IF')
+                OutData.OPEN
+                OutData.GET (WASH_BLDATA.hhid, WASH_BLDATA.sid)
+                IF NOT (OutData.RESULTOK) THEN
+                    pLog (', pDataOut: In REPEAT / In first IF / In second IF')
+                    WASH_BLDATA.COPY
+                    OutData.WRITE
+                    WASH_BLDATA.ReadOut:= CONTINUE
+                    WASH_BLDATA.WRITE
+                    auxOut_OK:= 1
+                ELSE
+                    pLog (', pDataOut: In REPEAT / In first IF / Not in second IF')
+                ENDIF
+            ELSE
+                pLog (', pDataOut: In REPEAT / Not in first IF')
+            ENDIF
+        UNTIL WASH_BLDATA.EOF
+        WASH_BLDATA.RELEASE
+        OutData.RELEASE
+
+        IF (auxOut_OK = 1) THEN
+            pLog (', pDataOut: aux_OutOK = 1')
+            pDateTime
+            auxOutName:= 'WASH_BLDATA' + auxIDNum + auxYr + auxMnth + auxDay + auxHr + auxMin
+            Reslt:= RUN ('COPYFILE ' + auxParm + '\ipak\wash\baseline\baseline.bmi ' + auxParm + '\ipak\wash\baseline\_Out\', WAIT)
+            Reslt:= RUN ('COPYFILE ' + auxParm + '\ipak\wash\baseline\baseline.bdm ' + auxParm + '\ipak\wash\baseline\_Out\', WAIT)
+            Reslt:= RUN ('COPYFILE ' + auxParm + '\ipak\wash\baseline\baseline.bxi ' + auxParm + '\ipak\wash\baseline\_Out\', WAIT)
+            Reslt:= RUN (auxParm + '\Blaise\wzzip ' + auxParm + '\ipak\wash\baseline\_Out\WASH_BLDATA ' + auxParm + '\Blaise\wzzip ' + auxParm + '\ipak\wash\baseline\_Out\baseline.* -sgoodstuff ', WAIT)
+            Reslt:= RUN (auxParm + '\Blaise\wzzip ' + auxParm + '\ipak\wash\baseline\_Out\WASH_BLDATA ' + auxParm + '\Blaise\wzzip ' + auxParm + '\ipak\wash\baseline\_Out\WASH_BLDATA.* -sgoodstuff ', WAIT)
+            Reslt:= RUN ('COPYFILE ' + auxParm + '\ipak\wash\baseline\_Out\WASH_BLDATA.zip ' + auxParm + '\ipak\wash\baseline\_Out\' + auxOutName + '.zip', WAIT)
+            Reslt:= RUN (auxParm + '\Blaise\eraserl -file ' + auxParm + '\ipak\wash\baseline\_Out\WASH_BLDATA.* -resultsonerror -queue -method DOD_E ', WAIT)
+            pLog (', ' + auxParm + '\Blaise\wzzip ' + auxParm + '\ipak\wash\baseline\_Out\WASH_BLDATA ' + auxParm + '\Blaise\wzzip ' + auxParm + '\ipak\wash\baseline\_Out\baseline.* -sgoodstuff ')
+        ELSE
+            pLog (', pDataOut: aux_OutOK <> 1')
+        ENDIF
+    ENDIF
+    pLog (', pDataOut: Exit')
+ENDPROCEDURE
+
+PROCEDURE pDailyOut
+    pLog (', pDailyOut: Entry')
+    auxOut_OK:= EMPTY
+    IF FILEEXISTS (auxParm + '\ipak\wash\baseline\WASH_BLDATA.bdb') THEN
+        WASH_BLDATA.OPEN
+        WASH_BLDATA.RESET
+
+        REPEAT
+            WASH_BLDATA.READNEXT
+            pLog (', pDailyOut: REPEAT')
+            IF (WASH_BLDATA.endpoint = COMPLETE) THEN
+                pLog (', pDailyOut: In REPEAT / In first IF')
+                DailyData.OPEN (auxParm + auxDailyFolder + '\WASH_BLDATA')
+                DailyData.GET (WASH_BLDATA.hhid, WASH_BLDATA.sid)
+
+                IF NOT (DailyData.RESULTOK) THEN
+                    pLog (', pDailyOut: In REPEAT / In first IF / In second IF')
+                    WASH_BLDATA.COPY
+                    DailyData.WRITE
+                    WASH_BLDATA.WRITE
+                    auxOut_OK:= 1
+                ELSE
+                    pLog (', pDailyOut: In REPEAT / In first IF / Not in second IF')
+                ENDIF
+            ELSE
+                pLog (', pDailyOut: In REPEAT / Not in first IF')
+            ENDIF
+        UNTIL WASH_BLDATA.EOF
+        WASH_BLDATA.RELEASE
+        DailyData.RELEASE
+
+        IF (auxOut_OK = 1) THEN
+            pLog (', pDailyOut: auxOut_OK = 1')
+            pDateTime
+            auxOutName:= 'WASH_BLDATA' + auxIDNum + auxYr + auxMnth + auxDay + auxHr + auxMin
+            Reslt:= RUN ('COPYFILE ' + auxParm + '\ipak\wash\baseline\baseline.bmi ' + auxParm + '\ipak\wash\baseline\_Out\', WAIT)
+            Reslt:= RUN ('COPYFILE ' + auxParm + '\ipak\wash\baseline\baseline.bdm ' + auxParm + '\ipak\wash\baseline\_Out\', WAIT)
+            Reslt:= RUN ('COPYFILE ' + auxParm + '\ipak\wash\baseline\baseline.bxi ' + auxParm + '\ipak\wash\baseline\_Out\', WAIT)
+            Reslt:= RUN (auxParm + '\Blaise\wzzip ' + auxParm + '\ipak\wash\baseline\_Out\WASH_BLDATA ' + auxParm + '\Blaise\wzzip ' + auxParm + '\ipak\wash\baseline\_Out\baseline.* -sgoodstuff ', WAIT)
+            Reslt:= RUN (auxParm + '\Blaise\wzzip ' + auxParm + '\ipak\wash\baseline\_Out\WASH_BLDATA ' + auxParm + '\Blaise\wzzip ' + auxParm + '\ipak\wash\baseline\_Out\WASH_BLDATA.* -sgoodstuff ', WAIT)
+            Reslt:= RUN ('COPYFILE ' + auxParm + '\ipak\wash\baseline\_Out\WASH_BLDATA.zip ' + auxParm + '\ipak\wash\baseline\_Out\' + auxOutName + '.zip', WAIT)
+            Reslt:= RUN (auxParm + '\Blaise\eraserl -file ' + auxParm + '\ipak\wash\baseline\_Out\WASH_BLDATA.* -resultsonerror -queue -method DOD_E ', WAIT)
+            pLog (', ' + auxParm + '\Blaise\wzzip ' + auxParm + '\ipak\wash\baseline\_Out\WASH_BLDATA ' + auxParm + '\Blaise\wzzip ' + auxParm + '\ipak\wash\baseline\_Out\baseline.* -sgoodstuff ')
+        ELSE
+            pLog (', pDailyOut: auxOut_OK <> 1')
+        ENDIF
+    ENDIF
+    pLog (', pDailyOut: Exit')
+ENDPROCEDURE
+
+PROCEDURE pBackUp
+    pLog (', pBackUp: Entry')
+    Reslt:= RUN (auxParm + '\Blaise\wzzip ' + auxParm + '\ipak\wash\baseline\WASH_BLDATA WASH_BLDATA.* -sgoodstuff ', WAIT)
+    Reslt:= RUN ('COPYFILE ' + auxParm + '\ipak\wash\baseline\WASH_BLDATA.zip ' + auxParm + '\ipak\wash\baseline\Stow\WASH_BLDATA.zip', WAIT)
+    IF FILEEXISTS (auxParm + '\ipak\wash\baseline\WASH_BLDATA.bdb') THEN
+        Reslt:= RUN (auxParm + '\Blaise\eraserl -file ' + auxParm + '\ipak\wash\baseline\WASH_BLDATA.* -resultsonerror -queue -method DOD_E ', WAIT)
+    ENDIF
+    pLog (', pBackUp: Exit')
+ENDPROCEDURE
+
+PROCEDURE pUnPack
+    pLog (', pUnPack: Entry')
+    Reslt:= RUN ('COPYFILE ' + auxParm + '\ipak\wash\baseline\Stow\WASH_BLDATA.zip ' + auxParm + '\ipak\wash\baseline\WASH_BLDATA.zip', WAIT)
+    Reslt:= RUN (auxParm + '\Blaise\eraserl -file ' + auxParm + '\ipak\wash\baseline\Stow\WASH_BLDATA.* -resultsonerror -queue -method DOD_E ', WAIT)
+    Reslt:= RUN (auxParm + '\Blaise\wzunzip -sgoodstuff ' + auxParm + '\ipak\wash\baseline\WASH_BLDATA.zip')
+    pLog (', pUnpack: Exit')
+ENDPROCEDURE
+
+MANIPULATE
+    auxParm:= 'C:'
+    pLog (', **********')
+    pLog (', MANIPULATE: Entry')
+
+    IDFile.OPEN
+    IDFile.GET ('WASH')
+    pLog (', MANIPULATE: IDFile.GET')
+    IDFile.RELEASE
+    pLog (', MANIPULATE: auxIDNum: ' + auxIDNum)
+    auxIDNum:= IDFile.IDNum
+    pLog (', MANIPULATE: auxIDNum: ' + auxIDNum)
+    pLog (', MANIPULATE: pCreateDir: ')
+    pCreateDir
+
+    pLog (', **********')
+    pLog (', MANIPULATE: Entry')
+    auxParm:= 'C:'
+    IF (PARAMETER (1) <> '') THEN
+        pLog (', MANIPULATE: PARAMETER (1) <> ''')
+        auxParm:= PARAMETER (1)
+    ENDIF
+
+    REPEAT
+        pLog (', MANIPULATE: In REPEAT')
+        TaskButton:= EMPTY
+        AskTask
+
+        pLog (', MANIPULATE: After AskTask')
+        IF (TaskButton = BASELINE) THEN
+            pLog (', MANIPULATE: TaskButton = BASELINE')
+            IF FILEEXISTS (auxParm + '\ipak\wash\baseline\Stow\WASH_BLDATA.zip') THEN
+                pLog (', MANIPULATE: Before pUnPack')
+                pUnPack
+                pLog (', MANIPULATE: After pUnpack')
+            ELSE
+                pLog (', MANIPULATE: file ' + auxParm + '\ipak\wash\baseline\Stow\WASH_BLDATA.zip does not exist')
+            ENDIF
+            pLog (', MANIPULATE: Before pGetData')
+            pGetData
+            pLog (', MANIPULATE: After pGetData')
+        ELSEIF (TaskButton = IPAA) THEN
+            pLog (', MANIPULATE: TaskButton = IPAA')
+            Reslt:= RUN ('"C:\ipak\wash\ipaa\ipaa_survey.bat"')
+        ELSEIF (TaskButton = EXIT) THEN
+            pLog (', MANIPULATE: TaskButton = EXIT')
+            IF CONFIRM ('Stop work?') THEN
+                pLog (', MANIPULATE: TaskButton = EXIT; Stop work? = YES')
+                IF FILEEXISTS (auxParm + '\ipak\wash\baseline\WASH_BLDATA.bdb') THEN
+                    pLog (' , MANIPULATE: TaskButton = EXIT; WASH_BLDATA.bdb file exists')
+                    Reslt:= RUN ('COPYFILE ' + auxParm + '\ipak\wash\baseline\baseline.bmi ' + auxParm + auxDailyFolder + '\', WAIT)
+                    Reslt:= RUN ('COPYFILE ' + auxParm + '\ipak\wash\baseline\baseline.bdm ' + auxParm + auxDailyFolder + '\', WAIT)
+                    Reslt:= RUN ('COPYFILE ' + auxParm + '\ipak\wash\baseline\baseline.bxi ' + auxParm + auxDailyFolder + '\', WAIT)
+                    pDailyOut
+                    Reslt:= RUN ('DELETEFILE ' + auxParm + auxDailyFolder + 'WASH_BLDATA.zip', WAIT)
+                    Reslt:= RUN (auxParm + '\Blaise\wzzip ' + auxParm + auxDailyFolder + '\WASH_BLDATA ' + auxParm + '\Blaise\wzzip ' + auxParm + auxDailyFolder + '\baseline.* -sgoodstuff ', WAIT)
+                    Reslt:= RUN (auxParm + '\Blaise\wzzip ' + auxParm + auxDailyFolder + '\WASH_BLDATA ' + auxParm + '\Blaise\wzzip ' + auxParm + auxDailyFolder + '\WASH_BLDATA.* -sgoodstuff ', WAIT)
+                    Reslt:= RUN ('COPYFILE ' + auxParm + auxDailyFolder + '\WASH_BLDATA.zip ' + auxParm + auxDailyFolder + '\' + auxDailyDB + '.zip', WAIT)
+                    Reslt:= RUN ('DELETEFILE ' + auxParm + auxDailyFolder + '\WASH_BLDATA.*', WAIT)
+                    Reslt:= RUN ('DELETEFILE ' + auxParm + auxDailyFolder + '\baseline.*', WAIT)
+                ENDIF
+                IF FILEEXISTS (auxParm + '\ipak\wash\baseline\WASH_BLDATA.bdb') THEN
+                    pDataOut
+                ENDIF
+                Stop:= YES
+                pBackUp
+
+                Reslt:= RUN ('COPYFILE ' + auxParm + '\ipak\wash\baseline\baseline.bmi ' + auxParm + '\ipak\wash\baseline\_Out\', WAIT)
+                Reslt:= RUN ('COPYFILE ' + auxParm + '\ipak\wash\baseline\baseline.bdm ' + auxParm + '\ipak\wash\baseline\_Out\', WAIT)
+                Reslt:= RUN ('COPYFILE ' + auxParm + '\ipak\wash\baseline\baseline.bxi ' + auxParm + '\ipak\wash\baseline\_Out\', WAIT)
+                Reslt:= RUN ('COPYFILE ' + auxParm + '\ipak\wash\baseline\baseline.bmi ' + auxParm + '\ipak\wash\baseline\Stow\', WAIT)
+                Reslt:= RUN ('COPYFILE ' + auxParm + '\ipak\wash\baseline\baseline.bdm ' + auxParm + '\ipak\wash\baseline\Stow\', WAIT)
+                Reslt:= RUN ('COPYFILE ' + auxParm + '\ipak\wash\baseline\baseline.bxi ' + auxParm + '\ipak\wash\baseline\Stow\', WAIT)
+            ELSE
+                pLog (', MANIPULATE: TaskButton = EXIT; Stop work? = NO')
+                Stop:= NO
+            ENDIF
+        ELSEIF (TaskButton = ABOUT) THEN
+            pLog (', MANIPULATE: TaskButton = ABOUT')
+            AboutDialog
+        ENDIF
+        pLog (', MANIPULATE: Before UNTIL')
+    UNTIL (Stop = YES)
+    pLog (', MANIPULATE: After UNTIL')
+    pLog (', **********')

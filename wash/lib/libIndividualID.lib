@@ -1,0 +1,4 @@
+LIBRARY libIndividualID
+TYPE
+    TIndividualID = STRING [9]
+ENDLIBRARY

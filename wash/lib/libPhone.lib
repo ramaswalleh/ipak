@@ -1,0 +1,4 @@
+LIBRARY libPhone
+TYPE
+    TPhone = STRING [10]
+ENDLIBRARY

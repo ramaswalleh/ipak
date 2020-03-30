@@ -1,0 +1,17 @@
+SETTINGS
+    DESCRIPTION = 'BLASIE TO ASCII'
+
+USES
+    inputmeta '..\ipaa'
+
+INPUTFILE
+    inputdata : inputmeta ('..\data\BLAISE_IPAA_2013_7_12', BLAISE)
+
+OUTPUTFILE
+    outputdata : inputmeta ('..\data\ASCII_IPAA_2013_7_12.asc', ASCII)
+    SETTINGS
+        SEPARATOR = ','
+        DELIMITER = '"'
+
+MANIPULATE
+    outputdata.WRITE

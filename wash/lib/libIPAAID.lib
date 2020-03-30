@@ -1,0 +1,4 @@
+LIBRARY libIPAAID
+    TYPE
+        TIPAAID = STRING [7] {|_|_|_|_|_|/|_|_|}
+ENDLIBRARY

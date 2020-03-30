@@ -1,0 +1,1 @@
+"C:\Blaise\Manipula.exe" "C:\ipak\wash\ipaa\ipaa.msu" /WC:\ipak\wash\ipaa

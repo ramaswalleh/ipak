@@ -1,0 +1,4 @@
+LIBRARY libStaffID
+TYPE
+    TStaffID = STRING [4]
+ENDLIBRARY

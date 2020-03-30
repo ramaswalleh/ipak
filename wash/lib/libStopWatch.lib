@@ -1,0 +1,4 @@
+LIBRARY libStopWatch
+TYPE
+    TStopWatch = STRING [4]
+ENDLIBRARY

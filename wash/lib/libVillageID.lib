@@ -1,0 +1,4 @@
+LIBRARY libVillageID
+TYPE
+    TVillageID = STRING [4]
+ENDLIBRARY

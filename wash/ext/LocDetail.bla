@@ -1,0 +1,30 @@
+{**********************************************************************
+ Module   : LocDetail.BLA
+ Author   : Ramadhan Ali Swalleh
+ Overview :
+
+   This program is the datamodel for the Localitsy details
+
+ Update History:
+ Vsn   dd/mm/yyyy Person Change
+ ----- ---------- ------ ------
+ 1.010 05/11/2012 FredW  -Initial version based on locdetl
+**********************************************************************}
+
+DATAMODEL locdetail
+
+PRIMARY
+    VILLAGENAME
+
+SECONDARY
+    Tri = VillageName(TRIGRAM)
+
+FIELDS
+    VILLAGENAME "@BVILLAGE NAME:@B" : STRING [30]
+    VILLAGEID "@BVILLAGE ID:@B" : STRING [4]
+    DISTRICT "@BDISTRICT:@B" : STRING [30]
+    DIVISION "@BDIVISION:@B" : STRING [30]
+    LOCATION "@BLOCATION:@B" : STRING [30]
+    SUBLOCATION "@BSUBLOCATION:@B" : STRING [30]
+    TREATMENT "@BTREATMENT:@B" : STRING [15], EMPTY
+ENDMODEL
